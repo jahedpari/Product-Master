@@ -6,8 +6,8 @@ start_record=0
 end_record=start_record+10
 
 
-inputFile='../data/products_sample.json'
-outputFile='outputFile3-'+str(start_record)+"-"+str(end_record)+'.csv'
+inputFile='../data/raw/products_sample.json'
+outputFile='../data/cleaned/outputFile3-'+str(start_record)+"-"+str(end_record)+'.csv'
 
 # create a writer  to write output
 fwriter= csv.writer(open(outputFile, 'wb'),encoding='UTF-8',errors='ignore')
