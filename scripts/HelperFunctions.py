@@ -191,7 +191,6 @@ def find_pred_probability(my_df, model, X_test):
 # Let's select k random records and check their prediction manually
 def choose_random_record(my_df, file_name=""):
     random_records = random.sample(my_df.index.to_list(), k=sample_test_size)
-    random_records = random.sample(my_df.index.to_list(), k=sample_test_size)
     test = my_df.loc[
         random_records, ['class', 'labels', 'product_type', 'full_store_product_url', 'all_text_original']]
 

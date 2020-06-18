@@ -40,31 +40,41 @@ print("Number of records with label:", labeled_data.shape[0])
 all_records_corpus = labeled_data["all_text"].tolist()
 all_records_labels = labeled_data["labels"].tolist()
 
-print(test_df.columns)
-test_x = test_df["all_text"].tolist()
-test_y= test_df["labels"].tolist()
+random.seed(30)
+random_records_test = random.sample(test_df.index.to_list(), k=50)
+random_records_valid=set(test_df.index.to_list())- set(random_records_test)
 
-X_train, X_valid, y_train, y_valid = train_test_split(all_records_corpus,
-                                                      all_records_labels, test_size=0.2,
-                                                      random_state=40)
+X_test = test_df.loc[random_records_test, "all_text"].tolist()
+y_test= test_df.loc[random_records_test, "labels"].tolist()
+
+X_valid = test_df.loc[random_records_valid,"all_text"].tolist()
+y_valid= test_df.loc[random_records_valid,"labels"].tolist()
+
+
+X_train= all_records_corpus
+y_train = all_records_labels
+
+#X_train, X_valid, y_train, y_valid = train_test_split(all_records_corpus,
+                                                      # all_records_labels, test_size=0.2,
+                                                   # random_state=40)
 
 X_train_cv, count_vectorizer = cv(X_train)
 X_valid_cv = count_vectorizer.transform(X_valid)
-test_x_cv = count_vectorizer.transform(test_x)
+X_test_cv = count_vectorizer.transform(X_test)
 
 
 # EDA
 print("The size of our features is:", X_train_cv.shape)
-display_embeding(X_train_cv, y_train)
+#display_embeding(X_train_cv, y_train)
 
 # print("**** Logistic Regression ****")
 # modelName = "Logistic_Reg-"
-# LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, test_x_cv , test_y)
+#LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, test_x_cv , test_y)
 
 
 print("**** Random Forest ****")
 modelName = "Random Forest-"
-RandomForestModel(X_train_cv, y_train, X_valid_cv, y_valid,count_vectorizer,unlabeled_data, test_x_cv , test_y)
+RandomForestModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
 
 # print("**** XGBoost ****")
 # modelName = "XGBoost-"
