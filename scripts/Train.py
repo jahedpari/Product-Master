@@ -9,7 +9,8 @@ from RandomFr import RandomForestModel
 from XGBst import XGBstModel
 
 df = pd.DataFrame()
-dbfile = open('../data/labeled/labeled_dataV3', 'rb')
+#dbfile = open('../data/labeled/labeled_dataV3', 'rb')
+dbfile = open('../data/labeled/labeled_dataV3-1million', 'rb')
 df = pickle.load(dbfile)
 dbfile.close()
 df = df[0:max_record]
@@ -67,17 +68,17 @@ X_test_cv = count_vectorizer.transform(X_test)
 print("The size of our features is:", X_train_cv.shape)
 #display_embeding(X_train_cv, y_train)
 
-# print("**** Logistic Regression ****")
-# modelName = "Logistic_Reg-"
-#LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, test_x_cv , test_y)
+print("**** Logistic Regression ****")
+modelName = "Logistic_Reg-"
+LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
 
 
 print("**** Random Forest ****")
 modelName = "Random Forest-"
 RandomForestModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
 
-# print("**** XGBoost ****")
-# modelName = "XGBoost-"
-# XGBstModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, test_x_cv , test_y)
+print("**** XGBoost ****")
+modelName = "XGBoost-"
+XGBstModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
 
 print("done!")

@@ -4,7 +4,7 @@
 sample_test_size = 100
 
 # number of records to process
-max_record = 500000
+max_record = 1000000
 
 # our categories and their related words
 classes = ['unisex', 'men', 'women', 'kid', 'baby']
