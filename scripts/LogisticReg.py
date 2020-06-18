@@ -6,22 +6,21 @@ from sklearn.metrics import confusion_matrix
 
 
 # Fitting logistic regression
-def LogisticRegModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, unlabeled_data):
+def LogisticRegModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, unlabeled_data, test_x_cv, test_y):
     model = LogisticRegression(C=30.0, class_weight='balanced', solver='newton-cg',
                                multi_class='multinomial', n_jobs=-1, random_state=40)
 
-    # Evaluation
-    cv = KFold(shuffle=True, n_splits=10)
-    evaluate(model, X_train_cv, y_train, cv)
+
 
     # Predict test records
     model.fit(X_train_cv, y_train)
-    y_predicted = model.predict(X_test_cv)
+    y_predicted = model.predict(test_x_cv)
 
+    get_metrics( test_y, y_predicted)
     # Inspection
     # Let's see how confident is our classifier
     _ = cal_probability(model, X_test_cv)
-    confusion_matrix(y_test, y_predicted)
+    confusion_matrix(test_y, y_predicted)
     plot_hist(y_predicted)
 
     # let's see how our model performs on unseen data
@@ -37,4 +36,12 @@ def LogisticRegModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, u
     find_pred_probability(unlabeled_data, model, X_unlabeled_cv)
 
     # Let's select k random records and check their prediction manually
-    choose_random_record(unlabeled_data)
+    choose_random_record(unlabeled_data, file_name="all")
+    # bPro = unlabeled_data[unlabeled_data['class'] == 'baby']
+    # choose_random_record(bPro, file_name="baby")
+    # kPro = unlabeled_data[unlabeled_data['class'] == 'kid']
+    # choose_random_record(kPro, file_name="kid")
+    # mPro = unlabeled_data[unlabeled_data['class'] == 'men']
+    # choose_random_record(mPro, file_name="men")
+
+

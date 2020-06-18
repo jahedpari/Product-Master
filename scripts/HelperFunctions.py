@@ -189,49 +189,74 @@ def find_pred_probability(my_df, model, X_test):
 
 
 # Let's select k random records and check their prediction manually
-def choose_random_record(my_df):
+def choose_random_record(my_df, file_name=""):
+    random_records = random.sample(my_df.index.to_list(), k=sample_test_size)
     random_records = random.sample(my_df.index.to_list(), k=sample_test_size)
     test = my_df.loc[
         random_records, ['class', 'labels', 'product_type', 'full_store_product_url', 'all_text_original']]
 
-    test.to_csv("../data/validate/test_random_unseen_data_LogisticReg.csv", index=True)
+    test.to_csv("../data/validate/test_random_unseen_data_"+file_name+".csv", index=True)
     plot_class_distribution(my_df, 'product_type', 'class', starting_index=0)
 
 
+
+
+
+
+
+
+
 def evaluate(model, X_train, y_train, cv):
+    accuracy= -1
+    precision= -1
+    recall= -1
+    fscore= -1
+
     scoring_accuracy = make_scorer(accuracy_score)
     scores = cross_val_score(model, X_train, y_train, cv=cv, scoring=scoring_accuracy)
-    print('Accuracy Mean', scores.mean())
+    accuracy=scores.mean()
+    print('Accuracy Mean',accuracy )
 
     if calculate_Precision:
         scoring_precision_micro = make_scorer(precision_score, average='micro')
         scores = cross_val_score(model, X_train, y_train, cv=cv, scoring=scoring_precision_micro)
-        print('Precision Mean', scores.mean())
+        precision = scores.mean()
+        print('Precision Mean', precision )
 
     if calculate_Recall:
         scoring_recall_score_micro = make_scorer(recall_score, average='micro')
         scores = cross_val_score(model, X_train, y_train, cv=cv, scoring=scoring_recall_score_micro)
-        print('Recall Mean', scores.mean())
+        recall=scores.mean()
+        print('Recall Mean', recall)
 
     if calculate_Fscore:
         scoring_f1_score_micro = make_scorer(f1_score, average='micro')
         scores = cross_val_score(model, X_train, y_train, cv=cv, scoring=scoring_f1_score_micro)
-        print('F1 Mean', scores.mean())
+        fscore=scores.mean()
+        print('F1 Mean',fscore )
+
+    return accuracy,precision,recall,fscore
 
 
 def get_metrics(y_test, y_predicted):
     # true positives / (true positives+false positives)
     precision = precision_score(y_test, y_predicted, pos_label=None,
                                 average='weighted')
+    print('Precision', precision)
+
     # true positives / (true positives + false negatives)
     recall = recall_score(y_test, y_predicted, pos_label=None,
                           average='weighted')
+    print('Recall', recall)
 
     # harmonic mean of precision and recall
     f1 = f1_score(y_test, y_predicted, pos_label=None, average='weighted')
+    print('F1', f1)
 
     # true positives + true negatives/ total
     accuracy = accuracy_score(y_test, y_predicted)
+    print('Accuracy', accuracy)
+
     return accuracy, precision, recall, f1
 
 

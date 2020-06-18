@@ -7,22 +7,29 @@ from sklearn.metrics import confusion_matrix
 
 
 # Fitting logistic regression
-def XGBstModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, unlabeled_data):
+def XGBstModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, unlabeled_data, test_x_cv, test_y):
     model = XGBClassifier()
+
+
 
     # Evaluation
     cv = KFold(shuffle=True, n_splits=10)
-    evaluate(model, X_train_cv, y_train, cv)
+    #evaluate(model, X_train_cv, y_train, cv)
 
     # Predict test records
     model.fit(X_train_cv, y_train)
-    y_predicted = model.predict(X_test_cv)
+    y_predicted = model.predict(test_x_cv)
+
+    get_metrics( test_y, y_predicted)
+
 
     # Inspection
     # Let's see how confident is our classifier
-    _ = cal_probability(model, X_test_cv)
-    confusion_matrix(y_test, y_predicted)
+    _ = cal_probability(model, test_x_cv)
+    confusion_matrix(test_y, y_predicted)
     plot_hist(y_predicted)
+
+
 
     # let's see how our model performs on unseen data
     all_records_corpus = unlabeled_data["all_text"].tolist()
