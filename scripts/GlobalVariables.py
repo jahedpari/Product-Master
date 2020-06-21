@@ -1,38 +1,36 @@
-# Defining Global variables
 import random
-
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, make_scorer, plot_confusion_matrix
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, make_scorer
 import matplotlib.patches as mpatches
 import itertools
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.model_selection import cross_val_score, KFold
-
-
-
-
+matplotlib.use('Agg')
 
 class Globals:
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
-
+    random_state=40
     # number of records to process
-    max_record =50000 #1000000
+    max_record = 50000 #1000000
 
     # our categories and their related words
     classes = ['unisex', 'men', 'women', 'kid', 'baby']
     modelName = "model"
 
-
-    plot_show = False
+    plot_show = True
 
     calculate_Precision = True
     calculate_Fscore = False
     calculate_Recall = False
 
+    unlabeled_data = None
+    labeled_data = None
+    test_df = None
+    valid_df = None
     X_train_cv = None
     y_train = None
     X_valid_cv = None
@@ -40,12 +38,10 @@ class Globals:
     X_test_cv = None
     y_test = None
     count_vectorizer = None
-    X_unlabeled_cv= None
-    unlabeled_data = None
-    labeled_data=None
+    X_unlabeled_cv = None
 
     @staticmethod
-    def plot_confusion_matrix(cm,  labels,
+    def plot_confusion_matrix(cm, labels,
                               normalize=False,
                               title='Confusion matrix',
                               cmap=plt.cm.winter):
@@ -69,47 +65,13 @@ class Globals:
         plt.ylabel('True label', fontsize=10)
         plt.xlabel('Predicted label', fontsize=10)
         print(cm)
-        plt.show()
+
         if Globals.plot_show:
-          plt.close()
-        plt.savefig('figs/' + Globals.modelName+ 'confusion_matrix.png')
+            plt.show()
+        plt.savefig('figs/' + Globals.modelName + 'confusion_matrix.png')
         return plt
 
-    # Add prediction probability to the unlabeled_data dataframe
-    @staticmethod
-    def cal_probability( myModel, X_test):
-        allRecords_probabilty = myModel.predict_proba(X_test)
-        allRecords_max_probabilty = []
-        for i in range(0, allRecords_probabilty.shape[0]):
-            probablities = allRecords_probabilty[i]
-            prob_index = np.argmax(probablities)
-            prob_max = max(probablities)
-            allRecords_max_probabilty.append(prob_max)
 
-        fig = plt.figure(figsize=(5, 5))
-        plt.xlabel('Prediction Probability')
-        plt.ylabel('Number of records')
-        plt.hist(allRecords_max_probabilty)
-        plt.show()
-        if Globals.plot_show:
-            plt.close()
-        plt.savefig('figs/'  + 'Probability.png')
-        return allRecords_max_probabilty
-
-    @staticmethod
-    def find_pred_probability(my_df, model, X_test):
-        my_df['probability'] = Globals.cal_probability(model, X_test)
-
-        confidence_threshold = 0.8
-        high_confidence = my_df[my_df['probability'] >= confidence_threshold]
-        high_confidence_size = high_confidence.shape[0]
-        low_confidence_size = my_df.shape[0] - high_confidence_size
-        print("Number of records predicted with confidence greater than {} is {} out of {}".format(confidence_threshold,
-                                                                                                   high_confidence_size,
-                                                                                                   my_df.shape[0]))
-        print("Number of records predicted with confidence less than {}  is {} out of {}".format(confidence_threshold,
-                                                                                                 low_confidence_size,
-                                                                                                 my_df.shape[0]))
 
     @staticmethod
     def eda():
@@ -126,7 +88,8 @@ class Globals:
 
     # Helper Functions
     @staticmethod
-    def plot_class_distribution( data_frame, groupby_feature='product_type', class_name='class',title=" Distributions", starting_index=1):
+    def plot_class_distribution(data_frame, groupby_feature='product_type', class_name='class', title=" Distributions",
+                                starting_index=1):
         print("Class Distributions")
         grouped = data_frame.groupby([class_name])
         values = grouped[groupby_feature].agg(np.size)[starting_index:]
@@ -137,16 +100,15 @@ class Globals:
         plt.xticks(y_pos, labels)
         plt.xlabel('Product categories')
         plt.ylabel('Number of Products')
-        plt.show()
+
         if Globals.plot_show:
-            plt.close()
+            plt.show()
 
-        plt.savefig('figs/' + Globals.modelName+title +'.png')
-
+        plt.savefig('figs/' + Globals.modelName + title + '.png')
 
     # Bag of Words Counts
     @staticmethod
-    def cv( data):
+    def cv(data):
         count_vectorizer = CountVectorizer(lowercase=True, stop_words='english', ngram_range=(1, 2))
         emb = count_vectorizer.fit_transform(data)
         return emb, count_vectorizer
@@ -170,16 +132,12 @@ class Globals:
             green_patch = mpatches.Patch(color='black', label='Baby')
             plt.legend(handles=[orange_patch, blue_patch, red_patch, yellow_patch, green_patch], prop={'size': 10})
 
-
-
     @staticmethod
-    def plot_hist( y_predicted, bins='auto'):
+    def plot_hist(y_predicted, bins='auto'):
         _ = plt.hist(y_predicted, bins='auto')
         plt.title("Histogram with 'auto' bins")
-        plt.show()
         if Globals.plot_show:
-
-            plt.close()
+            plt.show()
         plt.savefig('figs/' + Globals.modelName + 'Histogram.png')
 
     # Let's look at the features our classifier is using to make decisions.
@@ -192,7 +150,7 @@ class Globals:
         plt.yticks(y_pos, top_words, fontsize=8)
 
     @staticmethod
-    def get_most_important_features( vectorizer, myModel, n=5):
+    def get_most_important_features(vectorizer, myModel, n=5):
         index_to_word = {v: k for k, v in vectorizer.vocabulary_.items()}
 
         # loop for each class
@@ -210,7 +168,7 @@ class Globals:
 
     @staticmethod
     def plot_important_features(count_vectorizer, model):
-        importance = Globals.plot_important_features(count_vectorizer, model, 15)
+        importance = Globals.get_most_important_features(count_vectorizer, model, 15)
         # Plot the features our classifier is using to make decisions.
         top_scores_unisex = [a[0] for a in importance[0]['tops']]
         top_words_unisex = [a[1] for a in importance[0]['tops']]
@@ -242,46 +200,23 @@ class Globals:
         plt.subplots_adjust(wspace=0.3, hspace=0.4)
         plt.suptitle("Important Keywords for the classifier", fontsize=7)
         plt.xlabel('Importance')
-        plt.show()
+
         if Globals.plot_show:
-
-            plt.close()
+            plt.show()
         plt.savefig('figs/' + Globals.modelName + 'Important-Keywords.png')
-
-        # Let's look at the features our classifier is using to make decisions.
-        @staticmethod
-        def get_most_important_features(vectorizer, myModel, n=5):
-            index_to_word = {v: k for k, v in vectorizer.vocabulary_.items()}
-
-            # loop for each class
-            classes = {}
-            for class_index in range(myModel.coef_.shape[0]):
-                word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.coef_[class_index])]
-                sorted_coeff = sorted(word_importances, key=lambda x: x[0], reverse=True)
-                tops = sorted(sorted_coeff[:n], key=lambda x: x[0])
-                bottom = sorted_coeff[-n:]
-                classes[class_index] = {
-                    'tops': tops,
-                    'bottom': bottom
-                }
-            return classes
-
-
-
 
     ## Visualizing the embeddings
     @staticmethod
-    def display_embeding( X_train, y_train):
+    def display_embeding(X_train, y_train):
         fig = plt.figure(figsize=(7, 7))
         Globals.plot_LSA(X_train, y_train)
-        plt.show()
-        if Globals.plot_show:
 
-            plt.close()
+        if Globals.plot_show:
+            plt.show()
         plt.savefig('figs/' + Globals.modelName + 'embeddings.png')
 
     @staticmethod
-    def evaluate( model, X_train, y_train, cv):
+    def evaluate(model, X_train, y_train, cv):
         accuracy = -1
         precision = -1
         recall = -1
@@ -312,16 +247,13 @@ class Globals:
 
         return accuracy, precision, recall, fscore
 
-
-
     # Let's select k random records and check their prediction manually
     @staticmethod
-    def choose_random_record( my_df,category=None, file_name= modelName):
+    def choose_random_record(my_df, category=None, file_name=modelName):
 
         if category is not None:
             my_df = my_df[my_df['class'] == category]
-            file_name=file_name+"_category_"
-
+            file_name = file_name + "_category_"
 
         random_records = random.sample(my_df.index.to_list(), k=Globals.sample_test_size)
         test = my_df.loc[
@@ -329,9 +261,8 @@ class Globals:
 
         test.to_csv("../data/validate/test_random_unseen_data_" + file_name + ".csv", index=True)
 
-
     @staticmethod
     def check_data_size():
         assert Globals.X_train_cv.shape[0] == len(Globals.y_train)
-        assert  Globals.X_valid_cv.shape[0] ==  len(Globals.y_valid)
+        assert Globals.X_valid_cv.shape[0] == len(Globals.y_valid)
         assert Globals.X_test_cv.shape[0] == len(Globals.y_test)
