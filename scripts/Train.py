@@ -7,15 +7,15 @@ import numpy as np
 # load data frame pickled file
 from RandomFr import RandomForestModel
 from XGBst import XGBstModel
+from Models import ModelClass
 
 df = pd.DataFrame()
-#dbfile = open('../data/labeled/labeled_dataV3', 'rb')
 dbfile = open('../data/labeled/labeled_dataV3-1million', 'rb')
 df = pickle.load(dbfile)
 dbfile.close()
-df = df[0:max_record]
 
-#Read manually labeled records for evauation
+
+#Read manually labeled records for evaluation
 inputFile="../data/test/test_random_unseen_data-.csv"
 test_df = pd.read_csv(inputFile, dtype={ "Id":str,"True Label":str})
 test_df=test_df.dropna()
@@ -23,62 +23,71 @@ test_df = test_df.drop(['class', 'labels','product_type','full_store_product_url
 df['Id'] = df.index.astype(str)
 test_df=pd.merge(test_df,df,on='Id')
 df=df.drop('Id',axis=1)
-test_df['labels']=test_df["True Label"].apply(classes.index)
+test_df['labels']=test_df["True Label"].apply(Globals.classes.index)
 
+
+df = df[0:Globals.max_record]
+
+
+print("Number of total records:", df.shape[0])
 labeled_data = df[df['class'] != '-1'].copy()
+Globals.labeled_data =labeled_data
+
 unlabeled_data = df[df['class'] == '-1'].copy()
+Globals.unlabeled_data=unlabeled_data
+
 
 # encode the classes to their index
-labeled_data['labels'] = labeled_data['class'].apply(classes.index)
-print("classes:", classes)
-print("number of records", df.shape[0])
+labeled_data['labels'] = labeled_data['class'].apply(Globals.classes.index)
+unlabeled_records_corpus = unlabeled_data["all_text"].tolist()
 
-# let's see the distribution of our classes
-plot_class_distribution(df, 'product_type', 'class', starting_index=1)
-print("Number of total records:", df.shape[0])
-print("Number of records with label:", labeled_data.shape[0])
 
-all_records_corpus = labeled_data["all_text"].tolist()
-all_records_labels = labeled_data["labels"].tolist()
+labeled_records_corpus = labeled_data["all_text"].tolist()
+labeled_records_labels = labeled_data["labels"].tolist()
+X_train= labeled_records_corpus
+Globals.y_train = labeled_records_labels
+
+
 
 random.seed(30)
 random_records_test = random.sample(test_df.index.to_list(), k=50)
 random_records_valid=set(test_df.index.to_list())- set(random_records_test)
 
 X_test = test_df.loc[random_records_test, "all_text"].tolist()
-y_test= test_df.loc[random_records_test, "labels"].tolist()
+Globals.y_test= test_df.loc[random_records_test, "labels"].tolist()
 
 X_valid = test_df.loc[random_records_valid,"all_text"].tolist()
-y_valid= test_df.loc[random_records_valid,"labels"].tolist()
+Globals.y_valid= test_df.loc[random_records_valid,"labels"].tolist()
 
 
-X_train= all_records_corpus
-y_train = all_records_labels
-
-#X_train, X_valid, y_train, y_valid = train_test_split(all_records_corpus,
-                                                      # all_records_labels, test_size=0.2,
-                                                   # random_state=40)
-
-X_train_cv, count_vectorizer = cv(X_train)
-X_valid_cv = count_vectorizer.transform(X_valid)
-X_test_cv = count_vectorizer.transform(X_test)
 
 
-# EDA
-print("The size of our features is:", X_train_cv.shape)
-#display_embeding(X_train_cv, y_train)
+Globals.X_train_cv, Globals.count_vectorizer = Globals.cv(X_train)
+Globals.X_valid_cv = Globals.count_vectorizer.transform(X_valid)
+Globals.X_test_cv= Globals.count_vectorizer.transform(X_test)
+Globals.X_unlabeled_cv =Globals.count_vectorizer.transform(unlabeled_records_corpus)
+
+Globals.check_data_size()
+
+Globals.eda()
+
 
 print("**** Logistic Regression ****")
-modelName = "Logistic_Reg-"
-LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
+#LogisticRegModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
 
 
 print("**** Random Forest ****")
-modelName = "Random Forest-"
-RandomForestModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
+rf=RandomForestModel()
+rf.train()
+rf.fit()
+rf.predict()
+rf.get_metrics( )
+rf.inspection()
 
 print("**** XGBoost ****")
-modelName = "XGBoost-"
-XGBstModel(X_train_cv, y_train, X_valid_cv, y_valid, count_vectorizer, unlabeled_data, X_test_cv, y_test)
+#xgbst=XGBstModel()
+#xgbst.train()
+
+
 
 print("done!")

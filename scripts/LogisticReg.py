@@ -36,12 +36,7 @@ def LogisticRegModel(X_train_cv, y_train, X_test_cv, y_test, count_vectorizer, u
     find_pred_probability(unlabeled_data, model, X_unlabeled_cv)
 
     # Let's select k random records and check their prediction manually
-    choose_random_record(unlabeled_data, file_name="all")
-    # bPro = unlabeled_data[unlabeled_data['class'] == 'baby']
-    # choose_random_record(bPro, file_name="baby")
-    # kPro = unlabeled_data[unlabeled_data['class'] == 'kid']
-    # choose_random_record(kPro, file_name="kid")
-    # mPro = unlabeled_data[unlabeled_data['class'] == 'men']
-    # choose_random_record(mPro, file_name="men")
+    choose_random_record(unlabeled_data)
+
 
 
