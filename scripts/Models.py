@@ -1,9 +1,10 @@
-
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.metrics import confusion_matrix
-from GlobalVariables import Globals
+from Utility import Globals
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn import metrics
+
 
 class ModelClass:
 
@@ -38,6 +39,7 @@ class ModelClass:
         print("***information related to test records**")
         cm = confusion_matrix(Globals.y_test, self.y_predicted)
         Globals.plot_confusion_matrix(cm, Globals.classes, title="Test Records Confusion Matrix")
+        print(metrics.classification_report(Globals.y_test, self.y_predicted))
 
         # show most important features used by model, if the model supports this functionality
         if hasattr(self.model, 'coef_'):
@@ -60,7 +62,7 @@ class ModelClass:
         Globals.choose_random_record(Globals.unlabeled_data)
 
     def find_pred_probability(self, my_df, X_test, title="Prediction Probability"):
-        my_df['probability'] = self.cal_probability( X_test, title)
+        my_df['probability'] = self.cal_probability(X_test, title)
 
         confidence_threshold = 0.8
         high_confidence = my_df[my_df['probability'] >= confidence_threshold]
@@ -87,11 +89,6 @@ class ModelClass:
         plt.ylabel('Number of records')
         plt.hist(all_records_max_probabilty)
         plt.title(title)
-
-        if Globals.plot_show:
-            plt.show()
-        plt.savefig('figs/' + 'Probability.png')
+        plt.show()
+        plt.savefig('figs/' + Globals.modelName + ' ' + title + '.png')
         return all_records_max_probabilty
-
-
-

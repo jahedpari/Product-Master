@@ -4,6 +4,7 @@ import pandas as pd
 from RandomFr import RandomForestModel
 from XGBst import XGBstModel
 
+
 df = pd.DataFrame()
 dbfile = open('../data/labeled/labeled_dataV3-1million', 'rb')
 df = pickle.load(dbfile)
@@ -61,29 +62,43 @@ Globals.check_data_size()
 
 Globals.eda()
 
+
+
+Globals.undersample1()
+
+
+def pipline(model):
+    model.train()
+    model.fit()
+    model.predict()
+    model.get_metrics()
+    model.inspection()
+
 print("**** Logistic Regression ****")
 
-# lgReg = LogisticRegModel()
-# lgReg.train()
-# lgReg.fit()
-# lgReg.predict()
-# lgReg.get_metrics()
-# lgReg.inspection()
+lgReg = LogisticRegModel()
+pipline(lgReg)
+
 
 print("**** Random Forest ****")
 rf = RandomForestModel()
-rf.train()
-rf.fit()
-rf.predict()
-rf.get_metrics()
-rf.inspection()
+#pipline(rf)
+# rf.train()
+# rf.fit()
+# rf.predict()
+# rf.get_metrics()
+# rf.inspection()
 
 print("**** XGBoost ****")
-# xgbst = XGBstModel()
+xgbst = XGBstModel()
+#pipline(xgbst)
 # xgbst.train()
 # xgbst.fit()
 # xgbst.predict()
 # xgbst.get_metrics()
 # xgbst.inspection()
+
+
+
 
 print("done!")

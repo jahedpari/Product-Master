@@ -8,14 +8,19 @@ import matplotlib.patches as mpatches
 import itertools
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.model_selection import cross_val_score, KFold
+from collections import Counter
+from imblearn.under_sampling import NearMiss
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import SMOTE
+
 matplotlib.use('Agg')
 
 class Globals:
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
-    random_state=40
+    random_state = 40
     # number of records to process
-    max_record = 50000 #1000000
+    max_record = 10000 #*100
 
     # our categories and their related words
     classes = ['unisex', 'men', 'women', 'kid', 'baby']
@@ -39,6 +44,8 @@ class Globals:
     y_test = None
     count_vectorizer = None
     X_unlabeled_cv = None
+    plot_folder = 'figs'
+    plot_formats = '.png'
 
     @staticmethod
     def plot_confusion_matrix(cm, labels,
@@ -65,13 +72,12 @@ class Globals:
         plt.ylabel('True label', fontsize=10)
         plt.xlabel('Predicted label', fontsize=10)
         print(cm)
-
-        if Globals.plot_show:
-            plt.show()
-        plt.savefig('figs/' + Globals.modelName + 'confusion_matrix.png')
+        # plt.savefig('figs/' + Globals.modelName +" "+ 'confusion_matrix.png')
+        plt.savefig(
+            "{}/{}-{}-{}.png".format(Globals.plot_folder, Globals.modelName, 'confusion_matrix', Globals.plot_formats))
+        plt.show()
+        plt.clf()
         return plt
-
-
 
     @staticmethod
     def eda():
@@ -86,7 +92,6 @@ class Globals:
         Globals.plot_class_distribution(Globals.labeled_data, title="Labelled Records Distributions")
         print(Globals.unlabeled_data['class'].value_counts())
 
-    # Helper Functions
     @staticmethod
     def plot_class_distribution(data_frame, groupby_feature='product_type', class_name='class', title=" Distributions",
                                 starting_index=1):
@@ -100,11 +105,8 @@ class Globals:
         plt.xticks(y_pos, labels)
         plt.xlabel('Product categories')
         plt.ylabel('Number of Products')
-
-        if Globals.plot_show:
-            plt.show()
-
-        plt.savefig('figs/' + Globals.modelName + title + '.png')
+        plt.savefig('figs/' + Globals.modelName + " " + title + '.png')
+        plt.show()
 
     # Bag of Words Counts
     @staticmethod
@@ -136,9 +138,8 @@ class Globals:
     def plot_hist(y_predicted, bins='auto'):
         _ = plt.hist(y_predicted, bins='auto')
         plt.title("Histogram with 'auto' bins")
-        if Globals.plot_show:
-            plt.show()
-        plt.savefig('figs/' + Globals.modelName + 'Histogram.png')
+        plt.savefig('figs/' + Globals.modelName + " " + 'Histogram.png')
+        plt.show()
 
     # Let's look at the features our classifier is using to make decisions.
     @staticmethod
@@ -200,20 +201,16 @@ class Globals:
         plt.subplots_adjust(wspace=0.3, hspace=0.4)
         plt.suptitle("Important Keywords for the classifier", fontsize=7)
         plt.xlabel('Importance')
-
-        if Globals.plot_show:
-            plt.show()
-        plt.savefig('figs/' + Globals.modelName + 'Important-Keywords.png')
+        plt.savefig('figs/' + Globals.modelName + " " + 'Important-Keywords.png')
+        plt.show()
 
     ## Visualizing the embeddings
     @staticmethod
     def display_embeding(X_train, y_train):
         fig = plt.figure(figsize=(7, 7))
         Globals.plot_LSA(X_train, y_train)
-
-        if Globals.plot_show:
-            plt.show()
-        plt.savefig('figs/' + Globals.modelName + 'embeddings.png')
+        plt.savefig('figs/' + 'embeddings.png')
+        plt.show()
 
     @staticmethod
     def evaluate(model, X_train, y_train, cv):
@@ -266,3 +263,26 @@ class Globals:
         assert Globals.X_train_cv.shape[0] == len(Globals.y_train)
         assert Globals.X_valid_cv.shape[0] == len(Globals.y_valid)
         assert Globals.X_test_cv.shape[0] == len(Globals.y_test)
+
+    @staticmethod
+    def undersample1():
+        print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
+        nm = NearMiss()
+        Globals.X_train_cv, Globals.y_train = nm.fit_resample(Globals.X_train_cv, Globals.y_train)
+        print('under-sampled dataset shape %s' % Counter(Globals.y_train))
+
+
+    @staticmethod
+    def undersample2():
+        print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
+        rus = RandomUnderSampler(random_state=42)
+        Globals.X_train_cv, Globals.y_train = rus.fit_resample(Globals.X_train_cv, Globals.y_train)
+        print('under-sampled dataset shape %s' % Counter(Globals.y_train))
+
+
+    @staticmethod
+    def overrsample():
+        print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
+        SMOTE=SMOTE('minority',random_state=42)
+        Globals.X_train_cv, Globals.y_train = SMOTE.fit_resample(Globals.X_train_cv, Globals.y_train)
+        print('over-sampled dataset shape %s' % Counter(Globals.y_train))

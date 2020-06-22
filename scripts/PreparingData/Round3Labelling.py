@@ -1,27 +1,22 @@
-
-import nltk
-import pandas as pd
-import numpy as np
-import re
-import codecs
-import gc
-from nltk.corpus import wordnet
-import numpy as np
-import matplotlib.pyplot as plt
-from nltk.corpus import stopwords
-from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from pivottablejs import pivot_ui
-import random
-from nltk.probability import FreqDist
 import pickle
+import random
+import numpy as np
+import pandas as pd
 
+from PreparingData.Round2Labelling import labeled_data_index_r1, labeled_data_index_r2, plot_class_distribution
 
+sample_test_size = 40
+max_record = 1000000
 #  Round 3: Labeling more records based on vendor names
 
-#If products from a vendor all belong to one particular category (given that at least 10 products are listed)
-#we can assign that category to other products from the same vendor
+# If products from a vendor all belong to one particular category (given that at least 10 products are listed)
+# we can assign that category to other products from the same vendor
+
+dbfile = open('../../data/labeled/labeled_dataV2-1million', 'rb')
+df = pickle.load(dbfile)
+dbfile.close()
+print(df.shape)
+df = df[0:max_record]
 
 homo_brands = {}
 labeled_data = df[df['class'] != '-1'].copy()
@@ -40,13 +35,13 @@ print(homo_brands)
 
 homo_vendor_bool = df['vendor_name_original'].apply(lambda x: x in list(homo_brands.keys()))
 not_labled_bool = df['class'] == '-1'
+
 # records which are not labeled yet and belong to homo vendor
 homo_notLabeld_bool = np.logical_and(not_labled_bool, homo_vendor_bool)
 homo_notLabeld_index = df[homo_notLabeld_bool].index
 
 pd.DataFrame(
     {'homo_vendor': homo_vendor_bool, 'not_labled_bool': not_labled_bool, 'homo_notLabeld_bool': homo_notLabeld_bool})
-display(df)
 
 print("not labeled \n", df[not_labled_bool].index)
 print("homo \n", df[homo_vendor_bool].index)
@@ -61,9 +56,7 @@ def get_homo_class(x):
 
 df.loc[homo_notLabeld_index, 'class'] = df.loc[homo_notLabeld_index, :].apply(get_homo_class, axis=1)
 
-#  Find records labeled in round 3
-
-# keep trackes of record labeled in this round
+# keep track of record labeled in round 3
 labeled_data_index = df[df['class'] != '-1'].index.to_list()
 print(len(labeled_data_index))
 labeled_data_index_before = labeled_data_index_r1 + labeled_data_index_r2
@@ -76,22 +69,12 @@ print("Number of records not labeled yet:", df.shape[0] - len(labeled_data_index
 plot_class_distribution(df, 'product_type', 'class', starting_index=1)
 
 # Export Labeled Data
-
-
-df.to_csv("../data/labeled/labeled_dataV3-1million.csv", index=True)
-
-dbfile = open('../data/labeled/labeled_dataV3-1million', 'wb')
+df.to_csv("../../data/labeled/labeled_dataV3-1million.csv", index=True)
+dbfile = open('../../data/labeled/labeled_dataV3-1million', 'wb')
 pickle.dump(df, dbfile)
 dbfile.close()
 
-display(labeled_data.head())
-
-##  Choose some random records that are labeled in this round in order to check the labeling performance
-
+# Choose some random records that are labeled in this round in order to check the labeling performance
 random_records = random.sample(labeled_data_index_r3, k=sample_test_size)
 test = df.loc[random_records, ['class', 'product_type', 'full_store_product_url', 'all_text_original']]
-test.to_csv("../data/validate/test_random_labeled_data_Round3-1million.csv", index=True)
-
-random_records = random.sample(labeled_data_index_r3, k=sample_test_size)
-test = df.loc[random_records,]
-test.to_csv("../data/validate/1.csv", index=True)
+test.to_csv("../../data/validate/test_random_labeled_data_Round3-1million.csv", index=True)

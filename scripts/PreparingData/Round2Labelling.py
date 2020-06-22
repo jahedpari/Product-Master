@@ -1,20 +1,9 @@
-from IPython import get_ipython
-get_ipython().magic('reset -sf')
-
 import nltk
 import pandas as pd
-import numpy as np
-import re
-import codecs
-import gc
 from nltk.corpus import wordnet
 import numpy as np
 import matplotlib.pyplot as plt
-from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from pivottablejs import pivot_ui
 import random
 from nltk.probability import FreqDist
 import pickle
@@ -73,7 +62,7 @@ kidNet = ['kid', 'child', 'children', 'child', 'youth', 'joni', 'schoolchild', '
 unisexNet = ['unisex', 'androgynous', 'genderless', 'unisexual']
 all_Nets_list = [manNet, womanNet, babyNet, kidNet, unisexNet]
 
-dbfile = open('../data/labeled/labeled_dataV1-1million', 'rb')
+dbfile = open('../../data/labeled/labeled_dataV1-1million', 'rb')
 df = pickle.load(dbfile)
 dbfile.close()
 print(df.shape)
@@ -97,7 +86,7 @@ unisexProduct = ['electronics', 'phone', 'fruit', 'movie', 'vegetable',
                  'cookware', 'cook', 'novel', 'bike', 'headphone',
                  'appliance', 'battery', 'vitamin', 'fence', 'garden',
                  'speaker', 'camera', 'kitchen', 'radio', 'backpack'
-                  'frozen', 'food', 'household', 'safety', 'sex toys', 'skate',
+                                                          'frozen', 'food', 'household', 'safety', 'sex toys', 'skate',
                  'tuna', 'home']
 
 womanProduct = ['jewellery', 'pregnancy', 'make up', 'nail polish',
@@ -111,7 +100,6 @@ kidProduct = ['school', 'disney', 'spider', 'barbie', 'doll']
 babyProduct = ['Pacifier', 'Strollers', 'diapers', 'potty', 'walkers',
                'playmat', 'Car Seat', 'lip liner', 'Babyliss', 'maternity',
                'Teether', 'nursery', 'carrier', 'crib', 'Rattle', 'sleeper']
-
 
 # lemmitize and standardize the all the categories lists
 unisexProduct = normalize(unisexProduct)
@@ -132,10 +120,8 @@ all_keyword_set = set()
 for list_a in all_keyword_lists:
     all_keyword_set.update(set(list_a))
 
-
 # 2.2-Find most commmon words in product information which are not included in the categories lists
-
-####   Let's inspect word and vocabulary of our data set
+#   Let's inspect word and vocabulary of our data set
 # combine all rows' tokens  into one list
 all_words = list([a for b in df['product_type'] for a in b])
 all_words = list(filter(lambda a: a not in [',', '(', ')', "'", '"', ' ', "'s", 'nan'], all_words))
@@ -179,11 +165,7 @@ not_labled_index = df['class'] == '-1'
 df.loc[not_labled_index, 'class'] = df.loc[not_labled_index, :].apply(findLabel_commonKeywords, axis=1,
                                                                       args=[imp_feature])
 
-# Ignore thi line, just to test funstion
-# count_occurance_keyword(['tie','men', 'baby', 'shaver','shaves', 'tie','shave', 'tiered'], ['tie', 'shave'])
-
 #  Find records labeled in  round 2
-
 # keep trackes of record labeled in this round
 labeled_data_index = df[df['class'] != '-1'].index.to_list()
 print(len(labeled_data_index))
@@ -196,12 +178,12 @@ print("Number of records not labeled yet:", df.shape[0] - len(labeled_data_index
 plot_class_distribution(df, 'product_type', 'class', starting_index=1)
 
 # Export Labeled Data
-df.to_csv("../data/labeled/labeled_dataV2-1million.csv", index=True)
-dbfile = open('../data/labeled/labeled_dataV2-1million', 'wb')
+df.to_csv("../../data/labeled/labeled_dataV2-1million.csv", index=True)
+dbfile = open('../../data/labeled/labeled_dataV2-1million', 'wb')
 pickle.dump(df, dbfile)
 dbfile.close()
 
-#Choose some random records that are labeled in this round in order to check the labeling performance
+# Choose some random records that are labeled in this round in order to check the labeling performance
 random_records = random.sample(labeled_data_index_r2, k=sample_test_size)
 test = df.loc[random_records, ['class', 'product_type', 'full_store_product_url', 'all_text_original']]
-test.to_csv("../data/validate/test_random_labeled_data_Round2-1million.csv", index=True)
+test.to_csv("../../data/validate/test_random_labeled_data_Round2-1million.csv", index=True)

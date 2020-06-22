@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
-from GlobalVariables import *
+from Utility import *
 from Models import ModelClass
-
+from hyperopt import STATUS_OK, Trials, fmin, hp, tpe, space_eval
 
 class RandomForestModel(ModelClass):
 
@@ -9,26 +9,36 @@ class RandomForestModel(ModelClass):
         super().__init__("RF")
 
     def train(self):
-        # find the best n_estimators for RF
-        results = {}
-        for n_estimators in range(50, 400,  50):
-            results[n_estimators] = self.get_score(n_estimators, Globals.X_valid_cv, Globals.y_valid)
 
-        n_estimators_best = max(results, key=results.get)
-        print("best n_estimators:", n_estimators_best)
+        space = {
+        'max_depth': hp.choice('max_depth', range(1, 20)),
+        'max_features': hp.choice('max_features', range(1, 3)),
+        'n_estimators': hp.choice('n_estimators', range(50, 500,50)),
+        'criterion': hp.choice('criterion', ["gini", "entropy"]),
+        }
 
-        self.model = RandomForestClassifier(n_estimators=n_estimators_best, random_state=0)
+        trials = Trials()
 
-    def get_score(self, n_estimators, X_valid, y_valid):
-        """Return the average MAE over 3 CV folds of random forest model.
+        best_hyperparams = fmin(fn=self.get_score,
+                                space=space,
+                                algo=tpe.suggest,
+                                max_evals=100,
+                                trials=trials
+                                )
 
-        Keyword argument:
-        n_estimators -- the number of trees in the forest
-        """
-        model = RandomForestClassifier(n_estimators=n_estimators, random_state=0)
 
-        cv = KFold(shuffle=True, n_splits=3)
-        n_scores = cross_val_score(model, X_valid, y_valid, scoring='accuracy', cv=cv, error_score='raise')
+        print("The best hyperparameters are : ", "\n")
+        print(best_hyperparams)
 
-        print("n_estimators:", n_estimators, "accuracy", n_scores.mean())
-        return n_scores.mean()
+        hyperparams = space_eval(space, best_hyperparams)
+        self.model = RandomForestClassifier(**hyperparams, random_state=Globals.random_state)
+
+    def get_score(self, params):
+        clf = RandomForestClassifier(**params)
+
+        clf.fit(Globals.X_train_cv, Globals.y_train)
+
+        pred = clf.predict(Globals.X_valid_cv)
+        accuracy = accuracy_score(Globals.y_valid, pred)  # pred>0.5
+        print("SCORE:", accuracy)
+        return {'loss': -accuracy, 'status': STATUS_OK}

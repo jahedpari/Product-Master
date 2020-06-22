@@ -1,5 +1,3 @@
-from IPython import get_ipython
-get_ipython().magic('reset -sf')
 
 import nltk
 import gc
@@ -9,6 +7,7 @@ import matplotlib.pyplot as plt
 from nltk.stem.wordnet import WordNetLemmatizer
 import pickle
 import random
+
 gc.collect()
 
 # Number of records to be written in the file for manual examination
@@ -56,14 +55,12 @@ def get_wordnet_pos(word):
     return tag_dict.get(tag, wordnet.NOUN)
 
 
-dbfile = open('../data/processed/processed-1milliom', 'rb')
+dbfile = open('../../data/processed/processed-1milliom', 'rb')
 df = pickle.load(dbfile)
 dbfile.close()
-df.shape
+print(df.shape)
 
 df = df[0:max_record]
-
-
 
 # Round 1: Label  records based on the occurance of the keywords
 
@@ -83,7 +80,6 @@ kidNet = ['kid', 'child', 'children', 'child', 'youth', 'joni', 'schoolchild', '
 unisexNet = ['unisex', 'androgynous', 'genderless', 'unisexual']
 
 all_Nets_list = [manNet, womanNet, babyNet, kidNet, unisexNet]
-
 
 
 # count occurence of keywords in the list
@@ -111,9 +107,9 @@ def findLabel(row):
         maxLabel = '-1'
     return maxLabel
 
-#encode the classes to their index
-df.loc[:, 'class'] = df.loc[:, classes].apply(findLabel, axis=1)
 
+# encode the classes to their index
+df.loc[:, 'class'] = df.loc[:, classes].apply(findLabel, axis=1)
 
 # keep track of record labeled in this round
 labeled_data_index_r1 = df[df['class'] != '-1'].index.to_list()
@@ -130,14 +126,14 @@ plot_class_distribution(df, 'product_type', 'class', starting_index=1)
 #  Choose some randoms record to check the labeling in this round
 random_records = random.sample(labeled_data_index_r1, k=sample_test_size)
 test = df.loc[random_records, ['class', 'product_type', 'full_store_product_url', 'all_text_original']]
-test.to_csv("../data/validate/test_random_labeled_data_Round1.csv", index=True)
+test.to_csv("../../data/validate/test_random_labeled_data_Round1.csv", index=True)
 
 # Export Labeled Data
-df.to_csv("../data/labeled/labeled_dataV1-1milliom.csv", index=True)
-dbfile = open('../data/labeled/labeled_dataV1-1million', 'wb')
+df.to_csv("../../data/labeled/labeled_dataV1-1milliom.csv", index=True)
+dbfile = open('../../data/labeled/labeled_dataV1-1million', 'wb')
 pickle.dump(df, dbfile)
 dbfile.close()
 
 random_records = random.sample(labeled_data_index_r1, k=sample_test_size)
 test = df.loc[random_records, ['class', 'product_type', 'full_store_product_url', 'all_text_original']]
-test.to_csv("../data/validate/test_random_labeled_data_Round1-1million.csv", index=True)
+test.to_csv("../../data/validate/test_random_labeled_data_Round1-1million.csv", index=True)
