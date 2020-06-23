@@ -42,7 +42,7 @@ After choosing our classifiers, we need to tune the parameters using our validat
 As we can see, our model is classifying almost perfectly. As you saw, we have used different data partitions to train, validate and test. We also have used different metrics such accuracy, precision, F_score and Recall and also the plotted confusion matrix verifies that products are classified correctly.
 
 
-##  Why Our Classifier is performing Almost Perfectly?
+##  Why Our Classifier Is Performing Almost Perfectly?
 
 The answer is that our classifier learnt the keyword that our heuristic used for labelling our records. Hence, our model can perform well on the labeled records, but not that good on unlabeled records. Thus, in order to obtain the real performance of our model, we require label more records manually, and without our heuristics' help.
 Do not forget that, we also need to add manually labeled records to our training data to improve the model performance!
