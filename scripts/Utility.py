@@ -13,20 +13,25 @@ from imblearn.under_sampling import NearMiss
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
 
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 class Globals:
+
+
+
+    # number of records to process
+    max_record = 10000 *100
+
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
-    random_state = 40
-    # number of records to process
-    max_record = 10000 #*100
+
 
     # our categories and their related words
     classes = ['unisex', 'men', 'women', 'kid', 'baby']
     modelName = "model"
-
+    sampling_info = "Normal"
     plot_show = True
+    random_state = 40
 
     calculate_Precision = True
     calculate_Fscore = False
@@ -45,7 +50,9 @@ class Globals:
     count_vectorizer = None
     X_unlabeled_cv = None
     plot_folder = 'figs'
-    plot_formats = '.png'
+    plot_formats ='png'
+    plot_info= "-{}.{}".format( sampling_info ,plot_formats)
+
 
     @staticmethod
     def plot_confusion_matrix(cm, labels,
@@ -74,9 +81,9 @@ class Globals:
         print(cm)
         # plt.savefig('figs/' + Globals.modelName +" "+ 'confusion_matrix.png')
         plt.savefig(
-            "{}/{}-{}-{}.png".format(Globals.plot_folder, Globals.modelName, 'confusion_matrix', Globals.plot_formats))
+            "{}/{}-{}-{}".format(Globals.plot_folder,Globals.modelName ,'confusion_matrix', Globals.plot_info))
         plt.show()
-        plt.clf()
+        #plt.clf()
         return plt
 
     @staticmethod
@@ -105,7 +112,8 @@ class Globals:
         plt.xticks(y_pos, labels)
         plt.xlabel('Product categories')
         plt.ylabel('Number of Products')
-        plt.savefig('figs/' + Globals.modelName + " " + title + '.png')
+        plt.savefig(
+            "{}/{}-{}-{}".format(Globals.plot_folder,Globals.modelName , title, Globals.plot_info))
         plt.show()
 
     # Bag of Words Counts
@@ -138,7 +146,8 @@ class Globals:
     def plot_hist(y_predicted, bins='auto'):
         _ = plt.hist(y_predicted, bins='auto')
         plt.title("Histogram with 'auto' bins")
-        plt.savefig('figs/' + Globals.modelName + " " + 'Histogram.png')
+        plt.savefig(
+            "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName , 'Histogram', Globals.plot_info))
         plt.show()
 
     # Let's look at the features our classifier is using to make decisions.
@@ -201,7 +210,8 @@ class Globals:
         plt.subplots_adjust(wspace=0.3, hspace=0.4)
         plt.suptitle("Important Keywords for the classifier", fontsize=7)
         plt.xlabel('Importance')
-        plt.savefig('figs/' + Globals.modelName + " " + 'Important-Keywords.png')
+        plt.savefig(
+            "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName , 'Important-Keywords', Globals.plot_info))
         plt.show()
 
     ## Visualizing the embeddings
@@ -209,7 +219,8 @@ class Globals:
     def display_embeding(X_train, y_train):
         fig = plt.figure(figsize=(7, 7))
         Globals.plot_LSA(X_train, y_train)
-        plt.savefig('figs/' + 'embeddings.png')
+        plt.savefig(
+            "{}/{}-{}".format(Globals.plot_folder, 'embeddings', Globals.plot_info))
         plt.show()
 
     @staticmethod
@@ -270,6 +281,7 @@ class Globals:
         nm = NearMiss()
         Globals.X_train_cv, Globals.y_train = nm.fit_resample(Globals.X_train_cv, Globals.y_train)
         print('under-sampled dataset shape %s' % Counter(Globals.y_train))
+        Globals.sampling_info = "undersample1"
 
 
     @staticmethod
@@ -278,11 +290,41 @@ class Globals:
         rus = RandomUnderSampler(random_state=42)
         Globals.X_train_cv, Globals.y_train = rus.fit_resample(Globals.X_train_cv, Globals.y_train)
         print('under-sampled dataset shape %s' % Counter(Globals.y_train))
-
+        Globals.sampling_info = "undersample2"
 
     @staticmethod
     def overrsample():
         print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
-        SMOTE=SMOTE('minority',random_state=42)
-        Globals.X_train_cv, Globals.y_train = SMOTE.fit_resample(Globals.X_train_cv, Globals.y_train)
+        sm = SMOTE(random_state=Globals.random_state)
+        Globals.X_train_cv, Globals.y_train = sm.fit_resample(Globals.X_train_cv, Globals.y_train)
         print('over-sampled dataset shape %s' % Counter(Globals.y_train))
+        Globals.sampling_info="oversampling"
+
+    @staticmethod
+    def plot_prediction_probability(probabilty,title):
+        plt.xlabel('Prediction Probability')
+        plt.ylabel('Number of records')
+        plt.hist(probabilty)
+        plt.title(title)
+        plt.show()
+        plt.savefig(
+            "{}/{}-{}-{}".format(Globals.plot_folder,Globals.modelName , title, Globals.plot_info))
+
+    @staticmethod
+    def _plot_fig(train_results, valid_results, model_name, title):
+        colors = ["red", "blue", "green"]
+        xs = np.arange(1, train_results.shape[1] + 1)
+        plt.figure()
+        legends = []
+        for i in range(train_results.shape[0]):
+            plt.plot(xs, train_results[i], color=colors[i], linestyle="solid", marker="o")
+            plt.plot(xs, valid_results[i], color=colors[i], linestyle="dashed", marker="o")
+            legends.append("train-%d" % (i + 1))
+            legends.append("valid-%d" % (i + 1))
+        plt.xlabel("Epoch")
+        plt.ylabel("Normalized Gini")
+        plt.title("%s" % model_name)
+        plt.legend(legends)
+        plt.savefig(
+            "{}/{}-{}-{}".format(Globals.plot_folder,Globals.modelName , title, Globals.plot_info))
+        plt.close()

@@ -62,17 +62,17 @@ Globals.check_data_size()
 
 Globals.eda()
 
-
-
-Globals.undersample1()
-
-
 def pipline(model):
     model.train()
     model.fit()
     model.predict()
     model.get_metrics()
     model.inspection()
+
+
+
+Globals.undersample2()
+
 
 print("**** Logistic Regression ****")
 
@@ -82,21 +82,13 @@ pipline(lgReg)
 
 print("**** Random Forest ****")
 rf = RandomForestModel()
-#pipline(rf)
-# rf.train()
-# rf.fit()
-# rf.predict()
-# rf.get_metrics()
-# rf.inspection()
+pipline(rf)
+
 
 print("**** XGBoost ****")
 xgbst = XGBstModel()
-#pipline(xgbst)
-# xgbst.train()
-# xgbst.fit()
-# xgbst.predict()
-# xgbst.get_metrics()
-# xgbst.inspection()
+pipline(xgbst)
+
 
 
 

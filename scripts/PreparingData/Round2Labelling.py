@@ -1,12 +1,12 @@
+import pickle
+import random
+import matplotlib.pyplot as plt
 import nltk
+import numpy as np
 import pandas as pd
 from nltk.corpus import wordnet
-import numpy as np
-import matplotlib.pyplot as plt
-from nltk.stem.wordnet import WordNetLemmatizer
-import random
 from nltk.probability import FreqDist
-import pickle
+from nltk.stem.wordnet import WordNetLemmatizer
 
 # Helper Functions
 
@@ -80,25 +80,21 @@ print("Number of records not labeled in round 1:", df.shape[0] - len(labeled_dat
 
 # 2.1- Define commmon keywords for each category
 # if these keywords are in the product information and the product is not labeled so far, can be used to label the products
-unisexProduct = ['electronics', 'phone', 'fruit', 'movie', 'vegetable',
-                 'seafood', 'ipad', 'video', 'music', 'book', 'dairy',
-                 'egg', 'fridge', 'phone', 'supplement', 'cable',
-                 'cookware', 'cook', 'novel', 'bike', 'headphone',
-                 'appliance', 'battery', 'vitamin', 'fence', 'garden',
-                 'speaker', 'camera', 'kitchen', 'radio', 'backpack'
-                                                          'frozen', 'food', 'household', 'safety', 'sex toys', 'skate',
-                 'tuna', 'home']
+unisexProduct = ['electronics', 'phone', 'fruit', 'movie', 'vegetable', 'seafood', 'ipad', 'video', 'music', 'book',
+                 'dairy', 'egg', 'fridge', 'phone', 'supplement', 'cable', 'cookware', 'cook', 'novel', 'bike',
+                 'headphone', 'appliance', 'battery', 'vitamin', 'fence', 'garden',
+                 'speaker', 'camera', 'kitchen', 'radio', 'backpack', 'frozen', 'food', 'household', 'safety',
+                 'sex toys', 'skate', 'tuna', 'home']
 
-womanProduct = ['jewellery', 'pregnancy', 'make up', 'nail polish',
-                'eye shadow', 'skirt', 'Manicure', 'Pedicure', 'jewellery', 'bracelet', 'necklace',
-                'earring', 'jewelry', 'lingerie']
+womanProduct = ['jewellery', 'pregnancy', 'make up', 'nail polish', 'eye shadow', 'skirt', 'Manicure', 'Pedicure',
+                'jewellery', 'bracelet', 'necklace', 'earring', 'jewelry', 'lingerie']
 
 menProduct = ['shave', 'tuxedo']
 
 kidProduct = ['school', 'disney', 'spider', 'barbie', 'doll']
 
 babyProduct = ['Pacifier', 'Strollers', 'diapers', 'potty', 'walkers',
-               'playmat', 'Car Seat', 'lip liner', 'Babyliss', 'maternity',
+               'playmat', 'Car Seat', 'lip liner', 'maternity',
                'Teether', 'nursery', 'carrier', 'crib', 'Rattle', 'sleeper']
 
 # lemmitize and standardize the all the categories lists
@@ -133,7 +129,7 @@ for word, number in fdist.most_common(30):
         print(word, end=', ')
 
 
-# 3) Label records containg common keywords
+# 3) Label records containing common keywords
 # find the total frequency of a list of keywords in a tokenized list
 def count_occurance_keyword(tokenized_list, category_list):
     count = 0
@@ -160,13 +156,12 @@ def findLabel_commonKeywords(dataFrame, feature):
     return max_label
 
 
-# notLabled = df[ df['class'] == '-1' ]
 not_labled_index = df['class'] == '-1'
 df.loc[not_labled_index, 'class'] = df.loc[not_labled_index, :].apply(findLabel_commonKeywords, axis=1,
                                                                       args=[imp_feature])
 
 #  Find records labeled in  round 2
-# keep trackes of record labeled in this round
+# keep track of record labeled in this round
 labeled_data_index = df[df['class'] != '-1'].index.to_list()
 print(len(labeled_data_index))
 labeled_data_index_r2 = [i for i in labeled_data_index if i not in labeled_data_index_r1]
@@ -177,7 +172,7 @@ print("Number of records not labeled yet:", df.shape[0] - len(labeled_data_index
 
 plot_class_distribution(df, 'product_type', 'class', starting_index=1)
 
-# Export Labeled Data
+# Export Labelled Data
 df.to_csv("../../data/labeled/labeled_dataV2-1million.csv", index=True)
 dbfile = open('../../data/labeled/labeled_dataV2-1million', 'wb')
 pickle.dump(df, dbfile)

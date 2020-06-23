@@ -72,12 +72,7 @@ babyNet = ['baby', 'toddler', 'infant', 'babe', 'bambino', 'infant', 'neonate', 
 kidNet = ['kid', 'child', 'children', 'child', 'youth', 'joni', 'schoolchild', 'schoolgirl', 'schoolkid', 'junior']
 unisexNet = ['unisex', 'androgynous', 'genderless', 'unisexual']
 
-# our categories and their related words
-manNet = ['man', 'men', 'male', 'gentleman', 'gent', 'masculine', ' manlike', ' mannish']
-womanNet = ['woman', 'women', 'lady', 'female', 'ladies', 'girl', 'feminine']
-babyNet = ['baby', 'toddler', 'infant', 'babe', 'bambino', 'infant', 'newborn']
-kidNet = ['kid', 'child', 'children', 'child', 'youth', 'joni', 'schoolchild', 'schoolgirl', 'schoolkid', 'junior']
-unisexNet = ['unisex', 'androgynous', 'genderless', 'unisexual']
+
 
 all_Nets_list = [manNet, womanNet, babyNet, kidNet, unisexNet]
 
