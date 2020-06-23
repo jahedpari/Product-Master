@@ -16,7 +16,7 @@ The simplest approach we can start with is to use a bag of words model. A bag of
 
 
 
-![image.png](attachment:image.png)
+![image.png](figs/output_34_0.png)
 
 
 These embedding don't look very cleanly separated. Let's see how fitting a classifier can help.
@@ -34,7 +34,9 @@ After choosing our classifiers, we need to tune the parameters using our validat
 #### Accuracy 	0.999
 
 
-![image.png](attachment:image.png)
+![image.png](figs/output_41_1.png)
+
+ 
 
 ## Inspection
 As we can see, our model is classifying almost perfectly. As you saw, we have used different data partitions to train, validate and test. We also have used different metrics such accuracy, precision, F_score and Recall and also the plotted confusion matrix verifies that products are classified correctly.
