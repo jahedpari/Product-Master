@@ -14,25 +14,31 @@ class ModelClass:
         self.y_predicted = None
 
     def fit(self):
-        self.model.fit(Globals.X_train_cv, Globals.y_train)
+        self.model.fit(Globals.X_train_encoded, Globals.y_train)
 
     def predict(self):
-        self.y_predicted = self.model.predict(Globals.X_test_cv)
+        self.y_predicted = self.model.predict(Globals.X_test_encoded)
         return self.y_predicted
 
     def get_metrics(self):
-        precision = precision_score(Globals.y_test, self.y_predicted, pos_label=None,
-                                    average='weighted')
-        print('Precision', precision)
-        recall = recall_score(Globals.y_test, self.y_predicted, pos_label=None,
-                              average='weighted')
-        print('Recall', recall)
-        f1 = f1_score(Globals.y_test, self.y_predicted, pos_label=None, average='weighted')
-        print('F1', f1)
+
         accuracy = accuracy_score(Globals.y_test, self.y_predicted)
         print('Accuracy', accuracy)
 
-        return accuracy, precision, recall, f1
+        if Globals.calculate_Precision:
+            precision = precision_score(Globals.y_test, self.y_predicted, pos_label=None,
+                                        average='weighted')
+            print('Precision', precision)
+
+        if Globals.calculate_Recall:
+            recall = recall_score(Globals.y_test, self.y_predicted, pos_label=None,
+                                  average='weighted')
+            print('Recall', recall)
+
+        if Globals.calculate_Fscore:
+            f1 = f1_score(Globals.y_test, self.y_predicted, pos_label=None, average='weighted')
+            print('F1', f1)
+
 
     def inspection(self):
         print("***information related to test records**")
@@ -41,8 +47,8 @@ class ModelClass:
         print(metrics.classification_report(Globals.y_test, self.y_predicted))
 
         # show most important features used by model, if the model supports this functionality
-        if hasattr(self.model, 'coef_'):
-            Globals.plot_important_features(Globals.count_vectorizer, self.model)
+        # if hasattr(self.model, 'coef_'):
+        #     Globals.plot_important_features(Globals.count_vectorizer, self.model)
 
         print("***information related to unlabelled records**")
         # to see how our model performs on unseen data
@@ -52,13 +58,13 @@ class ModelClass:
 
     def check_prediction_unlabelled(self):
         # To see how our model performs on unlabelled data
-        X_unlabeled_cv = Globals.X_unlabeled_cv
+        X_unlabeled_cv = Globals.X_unlabeled_encoded
         y_unlabeled_predicted = self.model.predict(X_unlabeled_cv)
         Globals.unlabeled_data['labels'] = y_unlabeled_predicted
         Globals.unlabeled_data['class'] = Globals.unlabeled_data['labels'].apply(Globals.classes.__getitem__)
 
         # Let's select k random records and check their prediction manually
-        Globals.choose_random_record(Globals.unlabeled_data)
+        Globals.write_random_records(Globals.unlabeled_data)
 
     def find_pred_probability(self, my_df, X_test, title="Prediction Probability"):
         my_df['probability']= self.cal_probability(X_test, title)

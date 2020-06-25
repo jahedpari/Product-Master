@@ -36,9 +36,9 @@ class RandomForestModel(ModelClass):
     def get_score(self, params):
         clf = RandomForestClassifier(**params)
 
-        clf.fit(Globals.X_train_cv, Globals.y_train)
+        clf.fit(Globals.X_train_encoded, Globals.y_train)
 
-        pred = clf.predict(Globals.X_valid_cv)
+        pred = clf.predict(Globals.X_valid_encoded)
         accuracy = accuracy_score(Globals.y_valid, pred)  # pred>0.5
         print("SCORE:", accuracy)
         return {'loss': -accuracy, 'status': STATUS_OK}

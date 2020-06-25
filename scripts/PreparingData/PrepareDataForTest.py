@@ -2,7 +2,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
-
+from Utility import *
 
 def cv(data):
     count_vectorizer = CountVectorizer(lowercase=True, stop_words='english', ngram_range=(1, 2))
@@ -18,7 +18,7 @@ dbfile.close()
 
 classes = ['unisex', 'men', 'women', 'kid', 'baby']
 
-# Read manually labeled records for evauation
+# Read manually labeled records for evaluation
 inputFile = "../data/test/test_random_unseen_data-.csv"
 test_df = pd.read_csv(inputFile, dtype={"Id": str, "True Label": str})
 test_df = test_df.dropna()
@@ -36,7 +36,8 @@ print("classes:", classes)
 print("number of records", df.shape[0])
 
 # let's see the distribution of our classes
-# plot_class_distribution(df, 'product_type', 'class', starting_index=1)
+Globals.plot_class_distribution(df, 'product_type', 'class', starting_index=1)
+
 print("Number of total records:", df.shape[0])
 print("Number of records with label:", labeled_data.shape[0])
 

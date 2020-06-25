@@ -51,13 +51,13 @@ class XGBstModel(ModelClass):
         # )
 
         clf = XGBClassifier(**params)
-        evaluation = [(Globals.X_train_cv, Globals.y_train), (Globals.X_valid_cv, Globals.y_valid)]
+        evaluation = [(Globals.X_train_encoded, Globals.y_train), (Globals.X_valid_encoded, Globals.y_valid)]
 
-        clf.fit(Globals.X_train_cv, Globals.y_train,
+        clf.fit(Globals.X_train_encoded, Globals.y_train,
                 eval_set=evaluation, eval_metric="merror",
                 early_stopping_rounds=10, verbose=False)
 
-        pred = clf.predict(Globals.X_valid_cv)
+        pred = clf.predict(Globals.X_valid_encoded)
         accuracy = accuracy_score(Globals.y_valid, pred > 0.5)  # pred>0.5
         print("SCORE:", accuracy)
         return {'loss': -accuracy, 'status': STATUS_OK}
@@ -67,10 +67,10 @@ class XGBstModel(ModelClass):
 
         # to understand how confident is our classifier, see prediction probability
         print("Prediction Probability for test data")
-        self.find_pred_probability(Globals.test_df, Globals.X_test_cv,
+        self.find_pred_probability(Globals.test_df, Globals.X_test_encoded,
                                       "Prediction Probability for test data")
         print("Prediction Probability for unlaballed data")
-        self.find_pred_probability(Globals.unlabeled_data, Globals.X_unlabeled_cv,
+        self.find_pred_probability(Globals.unlabeled_data, Globals.X_unlabeled_encoded,
                                       "Prediction Probability for unlaballed data")
 
         xgb.plot_tree(self.model, num_trees=0)
