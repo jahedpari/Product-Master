@@ -11,9 +11,10 @@ class RandomForestModel(ModelClass):
     def train(self):
 
         space = {
-        'max_depth': hp.choice('max_depth', range(1, 20)),
-        'max_features': hp.choice('max_features', range(1, 3)),
-        'n_estimators': hp.choice('n_estimators', range(50, 500,50)),
+        'max_depth': hp.choice('max_depth', range(1, 40,2)),
+       # 'max_features': hp.choice('max_features', range(1, 50,5)),
+        'max_features': hp.choice('max_features', ['auto','log2',None]),
+        'n_estimators': hp.choice('n_estimators', range(10, 400,20)),
         'criterion': hp.choice('criterion', ["gini", "entropy"]),
         }
 

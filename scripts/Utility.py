@@ -29,7 +29,7 @@ class Globals:
 
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
-    remove_non_english_records=True
+    remove_non_english_records=False
 
     # our categories and their related words
     classes = ['unisex', 'men', 'women', 'kid', 'baby']
