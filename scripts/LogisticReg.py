@@ -12,14 +12,17 @@ class LogisticRegModel(ModelClass):
         space = {'warm_start': hp.choice('warm_start', [True, False]),
                  'fit_intercept': hp.choice('fit_intercept', [True, False]),
                  'tol': hp.uniform('tol', 0.00001, 0.0001),
-                 'C': hp.uniform('C', 0.05, 3),
-                 'solver': hp.choice('solver', ['newton-cg', 'lbfgs', 'liblinear']),
-                 'max_iter': hp.choice('max_iter', range(100, 1000))
+                 'solver': hp.choice('solver', ['saga']),
+                 'max_iter': hp.choice('max_iter', range(500, 1000,100)),
+                 'penalty': hp.choice('penalty',['l1','l2']),
+                 'C': hp.uniform('C', 0.001, 5),
+                  'n_jobs': hp.choice('n_jobs', [-1]),
+                 'class_weight' : hp.choice('class_weight', ['balanced']),
                  }
 
         trials = Trials()
 
-        best_hyperparams = fmin(fn=self.get_score,
+        best_hyperparams = fmin(fn=self.objective_fnc,
                                 space=space,
                                 algo=tpe.suggest,
                                 max_evals=100,
@@ -34,11 +37,8 @@ class LogisticRegModel(ModelClass):
         self.model = LogisticRegression(**hyperparams)
 
 
-    def get_score(self, params):
-
-
+    def objective_fnc(self, params):
         clf = LogisticRegression(**params)
-
         clf.fit(Globals.X_train_encoded, Globals.y_train)
 
         pred = clf.predict(Globals.X_valid_encoded)
