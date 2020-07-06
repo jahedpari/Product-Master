@@ -25,7 +25,7 @@ class LogisticRegModel(ModelClass):
         best_hyperparams = fmin(fn=self.objective_fnc,
                                 space=space,
                                 algo=tpe.suggest,
-                                max_evals=100,
+                                max_evals=Globals.max_evals,
                                 trials=trials
                                 )
 
@@ -42,9 +42,9 @@ class LogisticRegModel(ModelClass):
         clf.fit(Globals.X_train_encoded, Globals.y_train)
 
         pred = clf.predict(Globals.X_valid_encoded)
-        accuracy = accuracy_score(Globals.y_valid, pred)  # pred>0.5
-        print("SCORE:", accuracy)
-        return {'loss': -accuracy, 'status': STATUS_OK}
+        score = f1_score(Globals.y_valid, pred, average='weighted')
+        print("SCORE:", score)
+        return {'loss': -score, 'status': STATUS_OK}
 
     def inspection(self):
         super().inspection()

@@ -47,8 +47,8 @@ class ModelClass:
         print(metrics.classification_report(Globals.y_test, self.y_predicted))
 
         #show most important features used by model, if the model supports this functionality
-        if hasattr(self.model, 'coef_'):
-            Globals.plot_important_features(Globals.count_vectorizer, self.model)
+        # if hasattr(self.model, 'coef_') or hasattr(self.model, 'feature_importances_'):
+        #     Globals.plot_important_features(Globals.count_vectorizer, self.model)
 
         print("***information related to unlabelled records**")
         # to see how our model performs on unseen data
@@ -93,8 +93,9 @@ class ModelClass:
         Globals.plot_prediction_probability(all_records_max_probabilty, title)
         return all_records_max_probabilty
 
-    def save_mpdel(self,file_name="model.sav"):
+    def save_model(self,model_name="model"):
+        file_name=model_name+".sav"
         pickle.dump(self, open(file_name, 'wb'))
 
-    def load_mpdel(self,file_name="model.sav"):
+    def load_model(self,file_name="model.sav"):
         loaded_model = pickle.load(open(file_name, 'rb'))

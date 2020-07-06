@@ -25,7 +25,10 @@ word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 class Globals:
     # number of records to process, change it in case you want to try a smaller portion of data to make a rapid test
-    max_record = 10000 *100
+    max_record = 100000 *100
+
+    #evals number for hyperopt parameter tuning
+    max_evals=110
 
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
@@ -184,8 +187,16 @@ class Globals:
 
         # loop for each class
         classes = {}
-        for class_index in range(myModel.coef_.shape[0]):
-            word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.coef_[class_index])]
+        if hasattr(myModel, 'coef_'):
+            elem=range(myModel.coef_.shape[0])
+        else:
+            elem = range(myModel.feature_importances_.shape[0])
+        for class_index in elem:
+            word_importances=[]
+            if  hasattr(myModel, 'coef_'):
+                word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.coef_[class_index])]
+            else:
+                word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.feature_importances_[class_index])]
             sorted_coeff = sorted(word_importances, key=lambda x: x[0], reverse=True)
             tops = sorted(sorted_coeff[:n], key=lambda x: x[0])
             bottom = sorted_coeff[-n:]

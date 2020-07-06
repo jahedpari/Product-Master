@@ -1,3 +1,4 @@
+from KNN import KNNModel
 from LogisticReg import LogisticRegModel, random
 from RandomFr import RandomForestModel
 from XGBst import XGBstModel
@@ -20,6 +21,7 @@ def pipline(model):
     model.train()
     model.fit()
     model.predict()
+    model.save_model(model_name=Globals.modelName)
     model.get_metrics()
     model.inspection()
 
@@ -36,6 +38,10 @@ rf = RandomForestModel()
 print("**** XGBoost ****")
 xgbst = XGBstModel()
 #pipline(xgbst)
+
+print("**** KNN ****")
+knn = KNNModel()
+#pipline(knn)
 
 
 print("done!")
