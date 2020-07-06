@@ -94,7 +94,7 @@ class ModelClass:
         return all_records_max_probabilty
 
     def save_model(self,model_name="model"):
-        file_name=model_name+".sav"
+        file_name=model_name+"-"+Globals.encoding_model+".sav"
         pickle.dump(self, open(file_name, 'wb'))
 
     def load_model(self,file_name="model.sav"):

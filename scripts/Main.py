@@ -4,6 +4,7 @@ from RandomFr import RandomForestModel
 from XGBst import XGBstModel
 from Utility import Globals
 
+
 random.seed(Globals.random_state)
 Globals.read_data()
 
@@ -11,10 +12,12 @@ Globals.read_data()
 Globals.get_count_vectorizer()
 #Globals.get_word2vec()
 
-Globals.undersample2()
+
+Globals.oversample_random(),
+
 
 #to perfrom EDA
-#Globals.eda()
+Globals.eda()
 
 
 def pipline(model):
@@ -28,7 +31,7 @@ def pipline(model):
 
 print("**** Logistic Regression ****")
 lgReg = LogisticRegModel()
-pipline(lgReg)
+#pipline(lgReg)
 
 print("**** Random Forest ****")
 rf = RandomForestModel()

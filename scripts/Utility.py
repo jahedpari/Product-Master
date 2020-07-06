@@ -11,12 +11,14 @@ from sklearn.model_selection import cross_val_score, KFold
 from collections import Counter
 from imblearn.under_sampling import NearMiss
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler
 from imblearn.over_sampling import SMOTE
 import pickle
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from langdetect import detect
 import gensim
+
 word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 
@@ -25,14 +27,14 @@ word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 class Globals:
     # number of records to process, change it in case you want to try a smaller portion of data to make a rapid test
-    max_record = 100000 *100
+    max_record = 10000 * 1000
 
-    #evals number for hyperopt parameter tuning
-    max_evals=110
+    # evals number for hyperopt parameter tuning
+    max_evals = 100
 
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
-    remove_non_english_records=False
+    remove_non_english_records = False
 
     # our categories and their related words
     classes = ['unisex', 'men', 'women', 'kid', 'baby']
@@ -59,11 +61,11 @@ class Globals:
     y_valid = None
     y_test = None
 
-    X_train_encoded=None
+    X_train_encoded = None
     X_valid_encoded = None
     X_test_encoded = None
     X_unlabeled_encoded = None
-    unlabeled_records_corpus= None
+    unlabeled_records_corpus = None
 
     count_vectorizer = None
     encoding_model = None
@@ -144,6 +146,10 @@ class Globals:
         Globals.X_test_encoded = Globals.count_vectorizer.transform(Globals.X_test)
         Globals.X_unlabeled_encoded = Globals.count_vectorizer.transform(Globals.unlabeled_records_corpus)
         Globals.encoding_model = 'count_vectorizer'
+        print('X_train_encoded size:', Globals.X_train_encoded.shape)
+        print('X_valid_encoded size:', Globals.X_valid_encoded.shape)
+        print('X_test_encoded  size:', Globals.X_test_encoded .shape)
+        print('X_unlabeled_encoded  size', Globals.X_unlabeled_encoded.shape)
 
     # Since visualizing data in large dimensions is hard, let's project it down to 2.
     @staticmethod
@@ -188,15 +194,16 @@ class Globals:
         # loop for each class
         classes = {}
         if hasattr(myModel, 'coef_'):
-            elem=range(myModel.coef_.shape[0])
+            elem = range(myModel.coef_.shape[0])
         else:
             elem = range(myModel.feature_importances_.shape[0])
         for class_index in elem:
-            word_importances=[]
-            if  hasattr(myModel, 'coef_'):
+            word_importances = []
+            if hasattr(myModel, 'coef_'):
                 word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.coef_[class_index])]
             else:
-                word_importances = [(el, index_to_word[i]) for i, el in enumerate(myModel.feature_importances_[class_index])]
+                word_importances = [(el, index_to_word[i]) for i, el in
+                                    enumerate(myModel.feature_importances_[class_index])]
             sorted_coeff = sorted(word_importances, key=lambda x: x[0], reverse=True)
             tops = sorted(sorted_coeff[:n], key=lambda x: x[0])
             bottom = sorted_coeff[-n:]
@@ -285,7 +292,7 @@ class Globals:
 
         return accuracy, precision, recall, fscore
 
-    #Selects k random records to check their prediction manually
+    # Selects k random records to check their prediction manually
     @staticmethod
     def write_random_records(my_df, category=None, file_name=modelName):
 
@@ -306,28 +313,38 @@ class Globals:
         assert Globals.X_test_encoded.shape[0] == len(Globals.y_test)
 
     @staticmethod
-    def undersample1():
+    def undersample_Miss():
         print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
         nm = NearMiss()
         Globals.X_train_encoded, Globals.y_train = nm.fit_resample(Globals.X_train_encoded, Globals.y_train)
         print('under-sampled dataset shape %s' % Counter(Globals.y_train))
-        Globals.sampling_info = "undersample1"
+        Globals.sampling_info = "NearMiss-underSampler"
 
     @staticmethod
-    def undersample2():
+    def undersample_random():
         print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
         rus = RandomUnderSampler(random_state=42)
         Globals.X_train_encoded, Globals.y_train = rus.fit_resample(Globals.X_train_encoded, Globals.y_train)
         print('under-sampled dataset shape %s' % Counter(Globals.y_train))
-        Globals.sampling_info = "undersample2"
+        Globals.sampling_info = "Random-UnderSampler"
 
     @staticmethod
-    def overrsample():
+    def oversample_random():
+        print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
+        rus = RandomOverSampler(random_state=42)
+        Globals.X_train_encoded, Globals.y_train = rus.fit_resample(Globals.X_train_encoded, Globals.y_train)
+        print('over-sampled dataset shape %s' % Counter(Globals.y_train))
+
+        Globals.sampling_info = "Random-OverSampler"
+
+
+    @staticmethod
+    def overrsample_SMOTE():
         print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
         sm = SMOTE(random_state=Globals.random_state)
         Globals.X_train_encoded, Globals.y_train = sm.fit_resample(Globals.X_train_encoded, Globals.y_train)
         print('over-sampled dataset shape %s' % Counter(Globals.y_train))
-        Globals.sampling_info = "oversampling"
+        Globals.sampling_info = "SMOTE-OverSampler"
 
     @staticmethod
     def plot_prediction_probability(probabilty, title):
@@ -383,8 +400,8 @@ class Globals:
         # in case we want to try a smaller portion of data
         df = df[0:Globals.max_record]
 
-        if  Globals.remove_non_english_records == True:
-                df =Globals.remove_non_english(df)
+        if Globals.remove_non_english_records == True:
+            df = Globals.remove_non_english(df)
 
         print("Number of total records:", df.shape[0])
         labeled_data = df[df['class'] != '-1'].copy()
@@ -396,9 +413,10 @@ class Globals:
         labeled_data['labels'] = labeled_data['class'].apply(Globals.classes.index)
         labeled_records_labels = labeled_data["labels"].tolist()
 
+
         labeled_records_corpus = labeled_data["all_text"].tolist()
         unlabeled_records_corpus = unlabeled_data["all_text"].tolist()
-        Globals.unlabeled_records_corpus=unlabeled_records_corpus
+        Globals.unlabeled_records_corpus = unlabeled_records_corpus
 
         random_records_test = random.sample(test_df.index.to_list(), k=50)
         random_records_valid = set(test_df.index.to_list()) - set(random_records_test)
@@ -415,34 +433,47 @@ class Globals:
         Globals.X_test = test_df.loc[random_records_test, "all_text"].tolist()
 
     @staticmethod
-    def get_average_word2vec(tokens_list, vector, generate_missing=False, k=300):
+    def get_average_word2vec(tokens_list, generate_missing=False, k=300):
+
+        word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_path, binary=True)
+        Globals.encoding_model = "Word2vec"
+
         if len(tokens_list) < 1:
             return np.zeros(k)
         if generate_missing:
-            vectorized = [vector[word] if word in vector else np.random.rand(k) for word in tokens_list]
+            vectorized = [word2vec[word] if word in word2vec else np.random.rand(k) for word in tokens_list]
         else:
-            vectorized = [vector[word] if word in vector else np.zeros(k) for word in tokens_list]
+            vectorized = [word2vec[word] if word in word2vec else np.nan for word in tokens_list]
+        #   vectorized = [vector[word] if word in vector else np.zeros(k) for word in tokens_list]
         length = len(vectorized)
-        summed = np.sum(vectorized, axis=0)
-        averaged = np.divide(summed, length)
-
+        if length > 0:
+            summed = np.sum(vectorized, axis=0)
+            averaged = np.divide(summed, length)
+        else:
+            averaged = 0
         return averaged
 
-
     @staticmethod
-    def get_word2vec_embeddings(vectors, df, tokenized_text, generate_missing=False):
-        embeddings = df[tokenized_text].apply(lambda x: Globals.get_average_word2vec(x, vectors,
-                                                                               generate_missing=generate_missing))
+    def get_word2vec_embeddings( df, tokenized_text, generate_missing=False):
+        embeddings = df[tokenized_text].apply(lambda tokens: Globals.get_average_word2vec(tokens,
+                                                                                          generate_missing=generate_missing))
         return list(embeddings)
-
 
     @staticmethod
     def get_word2vec():
-        word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_path, binary=True)
-        Globals.encoding_model="Word2vec"
-        Globals.X_train_encoded = Globals.get_word2vec_embeddings(word2vec, Globals.labeled_data, 'all_tokens')
-        Globals.X_valid_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.valid_df, 'all_tokens')
-        Globals.X_test_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.test_df, 'all_tokens')
+        print("Encoding Train Data ...")
+        Globals.X_train_encoded = list( Globals.labeled_data['all_tokens'].apply(
+            lambda tokens: Globals.get_average_word2vec(tokens)) )
+        print("Encoding validation Data ...")
+        Globals.X_valid_encoded = list( Globals.valid_df['all_tokens'].apply(
+            lambda tokens: Globals.get_average_word2vec(tokens)))
+        print("Encoding test Data ...")
+        Globals.X_test_encoded = list( Globals.test_df['all_tokens'].apply(
+            lambda tokens: Globals.get_average_word2vec(tokens)))
+
+        # Globals.X_train_encoded = Globals.get_word2vec_embeddings(word2vec, Globals.labeled_data, 'all_tokens')
+        # Globals.X_valid_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.valid_df, 'all_tokens')
+        # Globals.X_test_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.test_df, 'all_tokens')
 
     @staticmethod
     def remove_non_english(df):
@@ -466,5 +497,5 @@ class Globals:
             except:
                 print("This row throws error:", row, text)
         df = df.drop(non_english)
-        print( count,"non english records are deleted")
+        print(count, "non english records are deleted")
         return df
