@@ -22,7 +22,7 @@ import gensim
 word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 
 class Globals:
@@ -121,7 +121,7 @@ class Globals:
 
     @staticmethod
     def plot_class_distribution(data_frame, groupby_feature='product_type', class_name='class', title=" Distributions",
-                                starting_index=1):
+                                starting_index=0):
         print("Class Distributions")
         grouped = data_frame.groupby([class_name])
         values = grouped[groupby_feature].agg(np.size)[starting_index:]

@@ -3,21 +3,23 @@ from LogisticReg import LogisticRegModel, random
 from RandomFr import RandomForestModel
 from XGBst import XGBstModel
 from Utility import Globals
-
+from imblearn.over_sampling import RandomOverSampler
 
 random.seed(Globals.random_state)
 Globals.read_data()
 
 #choose one of the following options
-Globals.get_count_vectorizer()
-#Globals.get_word2vec()
+#Globals.get_count_vectorizer()
+Globals.get_word2vec()
 
+
+#Globals.eda()
 
 Globals.oversample_random(),
 
 
 #to perfrom EDA
-Globals.eda()
+#Globals.eda()
 
 
 def pipline(model):
@@ -40,7 +42,7 @@ rf = RandomForestModel()
 
 print("**** XGBoost ****")
 xgbst = XGBstModel()
-#pipline(xgbst)
+pipline(xgbst)
 
 print("**** KNN ****")
 knn = KNNModel()
