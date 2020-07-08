@@ -30,10 +30,10 @@ matplotlib.use('Agg')
 
 class Globals:
     # number of records to process, change it in case you want to try a smaller portion of data to make a rapid test
-    max_record = 10000  #* 1000
+    max_record = 10000   * 1000
 
     # evals number for hyperopt parameter tuning
-    max_evals = 1
+    max_evals = 100
 
     # Number of records to be written in the file for manual examination
     sample_test_size = 40

@@ -206,19 +206,21 @@ class ModelClass:
                  ----------
                         None
          '''
-        file_name = self.modelName + "-" + Globals.encoding_model + ".sav"
+        file_name = "../models/"+self.modelName + "-" + Globals.encoding_model + ".sav"
         pickle.dump(self, open(file_name, 'wb'))
 
-    def load_model(self, file_name="model.sav"):
+    def load_model(self, file_name=None):
         '''
         load a model using pickle
 
                  Parameters:
                  ----------
-                        None
+                        file_name: optional, the adress of the file
 
                  Returns:
                  ----------
                         None
         '''
+        if file_name == None:
+            file_name = "../models/" + self.modelName + "-" + Globals.encoding_model + ".sav"
         self.model = pickle.load(open(file_name, 'rb'))
