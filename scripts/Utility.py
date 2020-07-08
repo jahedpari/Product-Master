@@ -1,8 +1,10 @@
+"""
+@author: Fatemeh Jahedpari
+"""
 import random
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, make_scorer
 import matplotlib.patches as mpatches
 import itertools
@@ -22,15 +24,16 @@ import gensim
 word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 
+# uncomment this line if you do not want the figures to pop up
 matplotlib.use('Agg')
 
 
 class Globals:
     # number of records to process, change it in case you want to try a smaller portion of data to make a rapid test
-    max_record = 10000 * 1000
+    max_record = 10000  #* 1000
 
     # evals number for hyperopt parameter tuning
-    max_evals = 100
+    max_evals = 1
 
     # Number of records to be written in the file for manual examination
     sample_test_size = 40
@@ -79,6 +82,11 @@ class Globals:
                               normalize=False,
                               title='Confusion matrix',
                               cmap=plt.cm.winter):
+
+        '''
+            Plots confusion matrix
+        '''
+
         if normalize:
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
         plt.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -99,7 +107,6 @@ class Globals:
         plt.ylabel('True label', fontsize=10)
         plt.xlabel('Predicted label', fontsize=10)
         print(cm)
-        # plt.savefig('figs/' + Globals.modelName +" "+ 'confusion_matrix.png')
         plt.savefig(
             "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName, 'confusion_matrix', Globals.plot_info))
         plt.show()
@@ -108,8 +115,10 @@ class Globals:
 
     @staticmethod
     def eda():
+        '''
+            Performs Exploratory Data Analysis
+        '''
         print("***Exploratory Data Analysis**")
-        # let's see the distribution of our classes
         print("classes:", Globals.classes)
 
         print("Number of records with label:", Globals.labeled_data.shape[0])
@@ -122,6 +131,10 @@ class Globals:
     @staticmethod
     def plot_class_distribution(data_frame, groupby_feature='product_type', class_name='class', title=" Distributions",
                                 starting_index=0):
+        '''
+            Plots the distribution of classes
+        '''
+
         print("Class Distributions")
         grouped = data_frame.groupby([class_name])
         values = grouped[groupby_feature].agg(np.size)[starting_index:]
@@ -136,9 +149,11 @@ class Globals:
             "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName, title, Globals.plot_info))
         plt.show()
 
-    # Bag of Words Counts
     @staticmethod
     def get_count_vectorizer():
+        '''
+            Encode the data using CountVectorizer
+        '''
 
         Globals.count_vectorizer = CountVectorizer(lowercase=True, stop_words='english', ngram_range=(1, 2))
         Globals.X_train_encoded = Globals.count_vectorizer.fit_transform(Globals.X_train)
@@ -148,12 +163,15 @@ class Globals:
         Globals.encoding_model = 'count_vectorizer'
         print('X_train_encoded size:', Globals.X_train_encoded.shape)
         print('X_valid_encoded size:', Globals.X_valid_encoded.shape)
-        print('X_test_encoded  size:', Globals.X_test_encoded .shape)
+        print('X_test_encoded  size:', Globals.X_test_encoded.shape)
         print('X_unlabeled_encoded  size', Globals.X_unlabeled_encoded.shape)
 
-    # Since visualizing data in large dimensions is hard, let's project it down to 2.
+
     @staticmethod
     def plot_LSA(test_data, test_labels, plot=True):
+        '''
+            Since visualizing data in large dimensions is hard, projects it down to 2.
+         '''
         lsa = TruncatedSVD(n_components=2)
         lsa.fit(test_data)
         lsa_scores = lsa.transform(test_data)
@@ -172,15 +190,21 @@ class Globals:
 
     @staticmethod
     def plot_hist(y_predicted, bins='auto'):
+        '''
+            Plots y_predicted argument using bins
+         '''
         _ = plt.hist(y_predicted, bins='auto')
         plt.title("Histogram with 'auto' bins")
         plt.savefig(
             "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName, 'Histogram', Globals.plot_info))
         plt.show()
 
-    # Let's look at the features our classifier is using to make decisions.
+
     @staticmethod
     def plot_important_words(top_words, top_scores, label, position):
+        '''
+            Plots the features our classifier is using to make decisions.
+        '''
         y_pos = np.arange(len(top_words))
         plt.subplot(position)
         plt.barh(y_pos, top_scores, align='center', alpha=0.5)
@@ -189,6 +213,9 @@ class Globals:
 
     @staticmethod
     def get_most_important_features(vectorizer, myModel, n=5):
+        '''
+            Finds features the classifier is using to make decisions.
+        '''
         index_to_word = {v: k for k, v in vectorizer.vocabulary_.items()}
 
         # loop for each class
@@ -215,6 +242,9 @@ class Globals:
 
     @staticmethod
     def plot_important_features(count_vectorizer, model):
+        '''
+            Plots the features our classifier is using to make decisions.
+        '''
         importance = Globals.get_most_important_features(count_vectorizer, model, 15)
         # Plot the features our classifier is using to make decisions.
         top_scores_unisex = [a[0] for a in importance[0]['tops']]
@@ -232,12 +262,6 @@ class Globals:
         top_scores_baby = [a[0] for a in importance[4]['tops']]
         top_words_baby = [a[1] for a in importance[4]['tops']]
 
-        unisex_pairs = [(a, b) for a, b in zip(top_words_unisex, top_scores_unisex)]
-        men_pairs = [(a, b) for a, b in zip(top_words_men, top_scores_men)]
-        unisex_pairs = [(a, b) for a, b in zip(top_words_unisex, top_scores_unisex)]
-        men_pairs = [(a, b) for a, b in zip(top_words_men, top_scores_men)]
-
-        fig = plt.figure(figsize=(10, 10))
         Globals.plot_important_words(top_words_unisex, top_scores_unisex, "Unisex", 321)
         Globals.plot_important_words(top_words_men, top_scores_men, "Men", 322)
         Globals.plot_important_words(top_words_women, top_scores_women, "Women", 323)
@@ -251,9 +275,22 @@ class Globals:
             "{}/{}-{}-{}".format(Globals.plot_folder, Globals.modelName, 'Important-Keywords', Globals.plot_info))
         plt.show()
 
-    ## Visualizing the embeddings
+
     @staticmethod
     def display_embeding(X_train, y_train):
+        '''
+         Visualizing the embeddings using LSA
+                 Parameters:
+                 ----------
+                 X_train : array-like of shape (n_samples, n_features)
+                 y_train : array-like of shape (n_samples, n_features)
+
+                 Returns:
+                 ----------
+                     None
+         '''
+
+
         fig = plt.figure(figsize=(7, 7))
         Globals.plot_LSA(X_train, y_train)
         plt.savefig(
@@ -262,6 +299,28 @@ class Globals:
 
     @staticmethod
     def evaluate(model, X_train, y_train, cv):
+        '''
+         Evaluate the model using cross validation object cv based on arguments X_train, y_train
+
+                 Parameters:
+                 ----------
+
+                model : model object implementing 'fit'
+                The object to use to fit the data.
+
+                X_train : array-like of shape (n_samples, n_features)
+                 The data to fit
+
+                y_train : array-like of shape (n_samples,) or (n_samples, n_outputs), \
+                 default=None
+
+                cv : int, cross-validation generator or an iterable
+                 Determines the cross-validation splitting strategy.
+
+                 Returns:
+                 ----------
+                     Returns accuracy, precision, recall, fscore
+         '''
         accuracy = -1
         precision = -1
         recall = -1
@@ -292,9 +351,22 @@ class Globals:
 
         return accuracy, precision, recall, fscore
 
-    # Selects k random records to check their prediction manually
     @staticmethod
     def write_random_records(my_df, category=None, file_name=modelName):
+        '''
+         Selects k random records from argument my_df for manual inspection
+                 Parameters:
+                 ----------
+                    my_df:dataframe
+                    category:feature name, optional
+                    to filter the df based on the category
+                    file_name: str, optional
+                    the name of file to write the records
+
+                 Returns:
+                 ----------
+                     None
+         '''
 
         if category is not None:
             my_df = my_df[my_df['class'] == category]
@@ -308,12 +380,34 @@ class Globals:
 
     @staticmethod
     def check_data_size():
+        '''
+         Assert data set sizes matches
+
+                 Parameters:
+                 ----------
+                    None
+
+                 Returns:
+                 ----------
+                     None
+         '''
         assert Globals.X_train_encoded.shape[0] == len(Globals.y_train)
         assert Globals.X_valid_encoded.shape[0] == len(Globals.y_valid)
         assert Globals.X_test_encoded.shape[0] == len(Globals.y_test)
 
     @staticmethod
     def undersample_Miss():
+        '''
+         Under samples Globals.X_train_encoded data using imblearn.over_sampling.NearMiss
+
+                 Parameters:
+                 ----------
+                    None
+
+                 Returns:
+                 ----------
+                     None
+         '''
         print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
         nm = NearMiss()
         Globals.X_train_encoded, Globals.y_train = nm.fit_resample(Globals.X_train_encoded, Globals.y_train)
@@ -322,6 +416,17 @@ class Globals:
 
     @staticmethod
     def undersample_random():
+        '''
+         Under samples Globals.X_train_encoded data using imblearn.over_sampling.RandomUnderSampler
+
+                 Parameters:
+                 ----------
+                    None
+
+                 Returns:
+                 ----------
+                     None
+         '''
         print('before-under sampled dataset shape %s' % Counter(Globals.y_train))
         rus = RandomUnderSampler(random_state=42)
         Globals.X_train_encoded, Globals.y_train = rus.fit_resample(Globals.X_train_encoded, Globals.y_train)
@@ -330,6 +435,17 @@ class Globals:
 
     @staticmethod
     def oversample_random():
+        '''
+         Over samples Globals.X_train_encoded data using imblearn.over_sampling.RandomOverSampler
+
+                 Parameters:
+                 ----------
+                    None
+
+                 Returns:
+                 ----------
+                     None
+         '''
         print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
         rus = RandomOverSampler(random_state=42)
         Globals.X_train_encoded, Globals.y_train = rus.fit_resample(Globals.X_train_encoded, Globals.y_train)
@@ -337,9 +453,19 @@ class Globals:
 
         Globals.sampling_info = "Random-OverSampler"
 
-
     @staticmethod
     def overrsample_SMOTE():
+        '''
+         Over samples Globals.X_train_encoded data using imblearn.over_sampling.SMOTE
+
+                 Parameters:
+                 ----------
+                    None
+
+                 Returns:
+                 ----------
+                     None
+         '''
         print('before-over sampled dataset shape %s' % Counter(Globals.y_train))
         sm = SMOTE(random_state=Globals.random_state)
         Globals.X_train_encoded, Globals.y_train = sm.fit_resample(Globals.X_train_encoded, Globals.y_train)
@@ -348,6 +474,20 @@ class Globals:
 
     @staticmethod
     def plot_prediction_probability(probabilty, title):
+        '''
+        Plots the prediction probability histogram, to show how confident is the model in its predictions
+
+                Parameters:
+                ----------
+                    probabilty: the probability of predictions
+                    title: str
+                      the tile of the figure
+
+                Returns:
+                ----------
+                    None
+        '''
+
         plt.xlabel('Prediction Probability')
         plt.ylabel('Number of records')
         plt.hist(probabilty)
@@ -377,6 +517,17 @@ class Globals:
 
     @staticmethod
     def read_data():
+        '''
+        Reads data for training, validation, testing, unlabelled data
+
+                Parameters:
+                ----------
+                    None
+
+                Returns:
+                ----------
+                    None
+        '''
 
         # Read all the records
         df = pd.DataFrame()
@@ -413,7 +564,6 @@ class Globals:
         labeled_data['labels'] = labeled_data['class'].apply(Globals.classes.index)
         labeled_records_labels = labeled_data["labels"].tolist()
 
-
         labeled_records_corpus = labeled_data["all_text"].tolist()
         unlabeled_records_corpus = unlabeled_data["all_text"].tolist()
         Globals.unlabeled_records_corpus = unlabeled_records_corpus
@@ -434,6 +584,18 @@ class Globals:
 
     @staticmethod
     def get_average_word2vec(tokens_list, generate_missing=False, k=300):
+        '''
+        Provide word2vec value for argument tokens_list
+
+                Parameters:
+                ----------
+                    tokens_list:list of tokenized text
+                    generate_missing: bool, optional
+
+                Returns:
+                ----------
+                    returns the average of word2vec values for all the tokens in tokens_list
+        '''
 
         word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_path, binary=True)
         Globals.encoding_model = "Word2vec"
@@ -454,29 +616,63 @@ class Globals:
         return averaged
 
     @staticmethod
-    def get_word2vec_embeddings( df, tokenized_text, generate_missing=False):
+    def get_word2vec_embeddings(df, tokenized_text, generate_missing=False):
+        '''
+         Provides word2vec value for argument df[tokenized_text]
+
+                Parameters:
+                ----------
+                    df:datframe
+                    tokenized_text: the column in df which inludes tokenized text list
+
+                Returns:
+                ----------
+                    returns the dataframe where its tokenized_text column includes word2vec embedding
+        '''
         embeddings = df[tokenized_text].apply(lambda tokens: Globals.get_average_word2vec(tokens,
                                                                                           generate_missing=generate_missing))
         return list(embeddings)
 
     @staticmethod
     def get_word2vec():
-        print("Encoding Train Data ...")
-        Globals.X_train_encoded = list( Globals.labeled_data['all_tokens'].apply(
-            lambda tokens: Globals.get_average_word2vec(tokens)) )
-        print("Encoding validation Data ...")
-        Globals.X_valid_encoded = list( Globals.valid_df['all_tokens'].apply(
-            lambda tokens: Globals.get_average_word2vec(tokens)))
-        print("Encoding test Data ...")
-        Globals.X_test_encoded = list( Globals.test_df['all_tokens'].apply(
-            lambda tokens: Globals.get_average_word2vec(tokens)))
+        '''
+         Encodes the rows of the dataframe using word2vec
 
-        # Globals.X_train_encoded = Globals.get_word2vec_embeddings(word2vec, Globals.labeled_data, 'all_tokens')
-        # Globals.X_valid_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.valid_df, 'all_tokens')
-        # Globals.X_test_encoded  =  Globals.get_word2vec_embeddings(word2vec, Globals.test_df, 'all_tokens')
+                Parameters:
+                ----------
+                    None
+
+                Returns:
+                ----------
+                    None
+        '''
+        print("Encoding Train Data ...")
+        # Globals.X_train_encoded = list(Globals.labeled_data['all_tokens'].apply(
+        #     lambda tokens: Globals.get_average_word2vec(tokens)))
+        # print("Encoding validation Data ...")
+        # Globals.X_valid_encoded = list(Globals.valid_df['all_tokens'].apply(
+        #     lambda tokens: Globals.get_average_word2vec(tokens)))
+        # print("Encoding test Data ...")
+        # Globals.X_test_encoded = list(Globals.test_df['all_tokens'].apply(
+        #     lambda tokens: Globals.get_average_word2vec(tokens)))
+
+        Globals.X_train_encoded = Globals.get_word2vec_embeddings(Globals.labeled_data, 'all_tokens')
+        Globals.X_valid_encoded  =  Globals.get_word2vec_embeddings( Globals.valid_df, 'all_tokens')
+        Globals.X_test_encoded  =  Globals.get_word2vec_embeddings( Globals.test_df, 'all_tokens')
 
     @staticmethod
     def remove_non_english(df):
+        '''
+        Removes non-english vocabularies fro the argument df
+
+                Parameters:
+                ----------
+                    df: dataframe
+
+                Returns:
+                ----------
+                        returns a new dataframe without english words
+        '''
         non_english = []
         count = 0
         for row in range(0, df.shape[0]):

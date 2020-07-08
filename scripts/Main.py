@@ -3,32 +3,31 @@ from LogisticReg import LogisticRegModel, random
 from RandomFr import RandomForestModel
 from XGBst import XGBstModel
 from Utility import Globals
-from imblearn.over_sampling import RandomOverSampler
+
 
 random.seed(Globals.random_state)
+
+#Reads all the data file and generates different data frames
 Globals.read_data()
 
-#choose one of the following options
+#choose one of the following two options
 #Globals.get_count_vectorizer()
 Globals.get_word2vec()
 
+#Generates some EDA plots
+Globals.eda()
 
-#Globals.eda()
-
+#Check Globals forother oversampling and undersampling methods
 Globals.oversample_random(),
 
-
-#to perfrom EDA
-#Globals.eda()
-
-
+# performs every steps of the process
 def pipline(model):
     model.train()
     model.fit()
     model.predict()
-    model.save_model(model_name=Globals.modelName)
+    model.save_model()
     model.get_metrics()
-    model.inspection()
+#    model.inspection()
 
 
 print("**** Logistic Regression ****")
@@ -37,7 +36,7 @@ lgReg = LogisticRegModel()
 
 print("**** Random Forest ****")
 rf = RandomForestModel()
-#pipline(rf)
+pipline(rf)
 
 
 print("**** XGBoost ****")
