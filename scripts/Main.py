@@ -10,12 +10,14 @@ random.seed(Globals.random_state)
 #Reads all the data file and generates different data frames
 Globals.read_data()
 
+
+
 #choose one of the following two options
-#Globals.get_count_vectorizer()
-Globals.get_word2vec()
+Globals.get_count_vectorizer()
 
 #Generates some EDA plots
 Globals.eda()
+
 
 #Check Globals forother oversampling and undersampling methods
 Globals.oversample_random(),
@@ -32,7 +34,7 @@ def pipline(model):
 
 print("**** Logistic Regression ****")
 lgReg = LogisticRegModel()
-#pipline(lgReg)
+pipline(lgReg)
 
 print("**** Random Forest ****")
 rf = RandomForestModel()
@@ -45,7 +47,7 @@ pipline(xgbst)
 
 print("**** KNN ****")
 knn = KNNModel()
-#pipline(knn)
+pipline(knn)
 
 
 print("done!")

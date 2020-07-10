@@ -25,12 +25,12 @@ word2vec_path = "../../Libraries/GoogleNews-vectors-negative300.bin.gz"
 
 
 # uncomment this line if you do not want the figures to pop up
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 
 class Globals:
     # number of records to process, change it in case you want to try a smaller portion of data to make a rapid test
-    max_record = 10000   * 1000
+    max_record = 1000000
 
     # evals number for hyperopt parameter tuning
     max_evals = 100
@@ -50,6 +50,7 @@ class Globals:
     calculate_Fscore = False
     calculate_Recall = False
     remove_non_english_records = False
+    word2vec=None
 
     unlabeled_data = None
     labeled_data = None  # to be used for training
@@ -123,10 +124,13 @@ class Globals:
 
         print("Number of records with label:", Globals.labeled_data.shape[0])
         print("Number of records without label:", Globals.unlabeled_data.shape[0])
-        print("The size of our features is:", Globals.X_train_encoded.shape)
-        Globals.display_embeding(Globals.X_train_encoded, Globals.y_train)
         Globals.plot_class_distribution(Globals.labeled_data, title="Labelled Records Distributions")
         print(Globals.unlabeled_data['class'].value_counts())
+
+        if Globals.X_train_encoded != None:
+            print("The size of our features is:", Globals.X_train_encoded.shape)
+            Globals.display_embeding(Globals.X_train_encoded, Globals.y_train)
+
 
     @staticmethod
     def plot_class_distribution(data_frame, groupby_feature='product_type', class_name='class', title=" Distributions",
@@ -529,8 +533,7 @@ class Globals:
                     None
         '''
 
-        # Read all the records
-        df = pd.DataFrame()
+        # Read all the record
         dbfile = open('../data/labeled/labeled_dataV3-1million', 'rb')
         df = pickle.load(dbfile)
         dbfile.close()
@@ -561,7 +564,7 @@ class Globals:
         Globals.unlabeled_data = unlabeled_data
 
         # Encode the classes to their index
-        labeled_data['labels'] = labeled_data['class'].apply(Globals.classes.index)
+        labeled_data['labels'] = labeled_data["class"].apply(Globals.classes.index)
         labeled_records_labels = labeled_data["labels"].tolist()
 
         labeled_records_corpus = labeled_data["all_text"].tolist()
@@ -597,15 +600,15 @@ class Globals:
                     returns the average of word2vec values for all the tokens in tokens_list
         '''
 
-        word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_path, binary=True)
-        Globals.encoding_model = "Word2vec"
+
+
 
         if len(tokens_list) < 1:
             return np.zeros(k)
         if generate_missing:
-            vectorized = [word2vec[word] if word in word2vec else np.random.rand(k) for word in tokens_list]
+            vectorized = [Globals.word2vec[word] if word in Globals.word2vec else np.random.rand(k) for word in tokens_list]
         else:
-            vectorized = [word2vec[word] if word in word2vec else np.nan for word in tokens_list]
+            vectorized = [ Globals.word2vec[word] if word in Globals.word2vec else np.nan for word in tokens_list]
         #   vectorized = [vector[word] if word in vector else np.zeros(k) for word in tokens_list]
         length = len(vectorized)
         if length > 0:
@@ -635,6 +638,23 @@ class Globals:
 
     @staticmethod
     def get_word2vec():
+        Globals.encoding_model = "Word2vec"
+        Globals.word2vec = gensim.models.KeyedVectors.load_word2vec_format(word2vec_path, binary=True)
+
+        print("labeled_data")
+        print(Globals.labeled_data.head())
+        print(Globals.labeled_data.columns)
+        print(Globals.labeled_data.shape)
+
+        print("valid_df")
+        print(Globals.valid_df.head())
+        print(Globals.valid_df.columns)
+        print(Globals.valid_df.shape)
+
+        print("test_df")
+        print(Globals.test_df.head())
+        print(Globals.test_df.columns)
+        print(Globals.test_df.shape)
         '''
          Encodes the rows of the dataframe using word2vec
 
@@ -656,8 +676,12 @@ class Globals:
         # Globals.X_test_encoded = list(Globals.test_df['all_tokens'].apply(
         #     lambda tokens: Globals.get_average_word2vec(tokens)))
 
+
+
         Globals.X_train_encoded = Globals.get_word2vec_embeddings(Globals.labeled_data, 'all_tokens')
+        print("Encoding validation Data ...")
         Globals.X_valid_encoded  =  Globals.get_word2vec_embeddings( Globals.valid_df, 'all_tokens')
+        print("Encoding test Data ...")
         Globals.X_test_encoded  =  Globals.get_word2vec_embeddings( Globals.test_df, 'all_tokens')
 
     @staticmethod
